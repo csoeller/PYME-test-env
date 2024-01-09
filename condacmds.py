@@ -40,8 +40,11 @@ def conda_remove(environment):
 
 # use channels as needed
 def conda_install(environment, *packages, channels = None):
-    proc = run(["conda", "install", "--quiet", "--yes", "--name", environment] + packages,
-               text=True, capture_output=True)
+    channelspecs = []
+    for chan in channels:
+        channelspecs += ["--channel", chan]
+    cmd = ["conda", "install", "--quiet", "--yes", "--name", environment] + channelspecs + packages
+    proc = run(cmd, text=True, capture_output=True)
     return json.loads(proc.stdout)
 
 from urllib.parse import urljoin
@@ -55,12 +58,26 @@ def unpack_snapshot(snapshot_file,target_dir):
     import shutil
     shutil.unpack_archive(snapshot_file,target_dir)
 
+def repobasename(repo):
+    return repo.split('/')[-1]
+    
 def download_repo(repo, target_dir):
     import requests
     import pathlib
 
     url = repo_url(repo)
 
-    downloaded_file = pathlib.Path(target_dir) / ("%s.zip" % repo)
+    downloaded_file = pathlib.Path(target_dir) / ("%s.zip" % repobasename(repo))
     downloaded_file.write_bytes(requests.get(url).content)
 
+
+def repo_dirname(repo,branch='master'):
+    return repobasename(repo) + '-%s' % branch
+
+
+# currently only for mac/linux
+# modify for windows
+def run_cmd_in_environment(cmd, environment):
+    compoundcmd = "conda activate %s ; %s" % (environment,cmd)
+    proc = run(compoundcmd, text=True, capture_output=True, shell=True)
+    return proc.stdout

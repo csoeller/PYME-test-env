@@ -3,6 +3,8 @@ from pathlib import Path
 # Todo
 #  need to add logging
 
+import logging
+
 
 # print(conda_list('conda-builds')[-1])
 # nonex = conda_list('nonexisting')
@@ -22,20 +24,25 @@ Path("build-test").mkdir(exist_ok=True)
 python='3.9'
 environment='test-pyme-%s' % python
 
+logging.basicConfig(filename=Path("build-test")/('build-%s.log' % environment),
+                    encoding='utf-8', level=logging.DEBUG)
+
 envs = cmds.conda_envs()
 print(envs.keys())
 
 if environment not in envs:
-    cc = cmds.conda_create(environment, python,channels=['conda-forge'])
-    print(cc)
+    cc = cmds.conda_create(environment, python, channels=['conda-forge'])
+    logging.info(cc)
 
-print(cmds.run_cmd_in_environment('which python',environment))
+
+cc = cmds.run_cmd_in_environment('which python',environment)
+logging.info(cc)
 
 # pyme-depends
-packages = ''.split()
+packages = 'pyme-depends'.split()
     
-result = cmds.conda_install(environment, packages, channels = ['conda-forge'])
-print(result)
+result = cmds.conda_install(environment, packages, channels = ['conda-forge','david-baddeley'])
+logging.info(result)
 
 # print(conda_remove(environment))
 

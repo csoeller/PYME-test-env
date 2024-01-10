@@ -1,6 +1,10 @@
 import json
 from subprocess import run
 import re
+import sys
+import logging
+
+logger = logging.getLogger(__name__)
 
 def conda_list(environment):
     proc = run(["conda", "list", "--json", "--name", environment],
@@ -30,7 +34,7 @@ def conda_create(environment,python='3.7', channels = None):
     for chan in channels:
         channelspecs += ["--channel", chan]
     cmd = ["conda", "create", "--json", "-y", "--name", environment] + channelspecs + packages
-    print("command is '%s'" % cmd)
+    logger.info("command is '%s'" % cmd)
     proc = run(cmd, text=True, capture_output=True)
     return proc.stdout
 
@@ -39,13 +43,14 @@ def conda_remove(environment):
      return proc.stdout
 
 # use channels as needed
-def conda_install(environment, *packages, channels = None):
+def conda_install(environment, packages, channels = None):
     channelspecs = []
     for chan in channels:
         channelspecs += ["--channel", chan]
-    cmd = ["conda", "install", "--quiet", "--yes", "--name", environment] + channelspecs + packages
+    cmd = ["conda", "install", "--quiet", "--yes", "--name", environment] + channelspecs + list(packages)
+    logger.info("command arg list is '%s'" % cmd)
     proc = run(cmd, text=True, capture_output=True)
-    return json.loads(proc.stdout)
+    return proc.stdout
 
 from urllib.parse import urljoin
 def repo_url(repo,branch='master'):
@@ -75,9 +80,25 @@ def repo_dirname(repo,branch='master'):
     return repobasename(repo) + '-%s' % branch
 
 
+def mk_compound_cmd(*cmds):
+    from sys import platform
+    if platform == "linux" or platform == "linux2":
+        sep = ' ; '
+    elif platform == "darwin":
+        sep = ' ; '
+    elif platform == "win32":
+        sep = ' && '
+
+    return sep.join(cmds)
+
 # currently only for mac/linux
 # modify for windows
 def run_cmd_in_environment(cmd, environment):
-    compoundcmd = "conda activate %s ; %s" % (environment,cmd)
+    compoundcmd = mk_compound_cmd("conda activate %s" % (environment), cmd)
+    logger.info("command is %s" % compoundcmd)
     proc = run(compoundcmd, text=True, capture_output=True, shell=True)
     return proc.stdout
+
+def pip_install(environment, packages):
+    args = ['python', '-m', 'pip', 'install'] + list(packages)
+    return run_cmd_in_environment(' '.join(args),environment)

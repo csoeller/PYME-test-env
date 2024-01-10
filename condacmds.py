@@ -4,15 +4,22 @@ import re
 import sys
 import logging
 
+condacmd = "conda"
 logger = logging.getLogger(__name__)
 
+def set_condacmd(cmd):
+    global condacmd
+    condacmd = cmd 
+
 def conda_list(environment):
-    proc = run(["conda", "list", "--json", "--name", environment],
+    global condacmd
+    proc = run([condacmd, "list", "--json", "--name", environment],
                text=True, capture_output=True)
     return json.loads(proc.stdout)
 
 def conda_envs():
-    proc = run(["conda", "env", "list"],
+    global condacmd
+    proc = run([condacmd, "env", "list"],
                text=True, capture_output=True)
     lines = proc.stdout.split("\n")
     entry = re.compile("(\S+)\s+[*]*\s*(\S+)")
@@ -27,27 +34,30 @@ def conda_envs():
     return envs
 
 def conda_create(environment,python='3.7', channels = None):
+    global condacmd
     if environment in conda_envs():
         raise RuntimeError('environment "%s" already exists' % (environment))
     packages = ["python=%s" % python]
     channelspecs = []
     for chan in channels:
         channelspecs += ["--channel", chan]
-    cmd = ["conda", "create", "--json", "-y", "--name", environment] + channelspecs + packages
+    cmd = [condacmd, "create", "--json", "-y", "--name", environment] + channelspecs + packages
     logger.info("command is '%s'" % cmd)
     proc = run(cmd, text=True, capture_output=True)
     return proc.stdout
 
 def conda_remove(environment):
-     proc = run(["conda", "remove", "-n", environment, "-y", "--all"], text=True, capture_output=True)
-     return proc.stdout
+    global condacmd
+    proc = run([condacmd, "remove", "-n", environment, "-y", "--all"], text=True, capture_output=True)
+    return proc.stdout
 
 # use channels as needed
 def conda_install(environment, packages, channels = None):
+    global condacmd
     channelspecs = []
     for chan in channels:
         channelspecs += ["--channel", chan]
-    cmd = ["conda", "install", "--quiet", "--yes", "--name", environment] + channelspecs + list(packages)
+    cmd = [condacmd, "install", "--quiet", "--yes", "--name", environment] + channelspecs + list(packages)
     logger.info("command arg list is '%s'" % cmd)
     proc = run(cmd, text=True, capture_output=True)
     return proc.stdout
@@ -94,7 +104,8 @@ def mk_compound_cmd(*cmds):
 # currently only for mac/linux
 # modify for windows
 def run_cmd_in_environment(cmd, environment):
-    compoundcmd = mk_compound_cmd("conda activate %s" % (environment), cmd)
+    global condacmd
+    compoundcmd = mk_compound_cmd("%s activate %s" % (condacmd, environment), cmd)
     logger.info("command is %s" % compoundcmd)
     proc = run(compoundcmd, text=True, capture_output=True, shell=True)
     return proc.stdout

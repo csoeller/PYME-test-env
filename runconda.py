@@ -35,7 +35,7 @@ if environment not in envs:
     logging.info(cc)
 
 
-cc = cmds.run_cmd_in_environment('which python',environment)
+cc = cmds.run_cmd_in_environment('python -V',environment)
 logging.info(cc)
 
 # pyme-depends
@@ -44,15 +44,17 @@ packages = 'pyme-depends'.split()
 result = cmds.conda_install(environment, packages, channels = ['conda-forge','david_baddeley'])
 logging.info(result)
 
+download_pyme()
+
 # print(conda_remove(environment))
 
 # create new environment
 # install pyme-depends
 # create new subdirectory for build
 # download PYME snapshot
-# attempt to install (as development install?)
+# attempt to install (as development install?)
 # test install successful
 # download PYME snapshot
-# attempt to install (as development install?)
+# attempt to install (as development install?)
 # test install successful
 

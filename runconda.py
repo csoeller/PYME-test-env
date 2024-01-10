@@ -41,7 +41,7 @@ logging.info(cc)
 # pyme-depends
 packages = 'pyme-depends'.split()
     
-result = cmds.conda_install(environment, packages, channels = ['conda-forge','david-baddeley'])
+result = cmds.conda_install(environment, packages, channels = ['conda-forge','david_baddeley'])
 logging.info(result)
 
 # print(conda_remove(environment))

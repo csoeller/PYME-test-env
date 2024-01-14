@@ -85,10 +85,17 @@ def download_repo(repo, target_dir):
     downloaded_file = pathlib.Path(target_dir) / ("%s.zip" % repobasename(repo))
     downloaded_file.write_bytes(requests.get(url).content)
 
-
 def repo_dirname(repo,branch='master'):
     return repobasename(repo) + '-%s' % branch
 
+def build_repo(repo,environment,branch='master',env_dir="build-test"):
+    import pathlib
+    # need to see if a relative path is enough
+    repodir = pathlib.Path(env_dir) / repo_dirname(repo,branch=branch)
+    # we could make the install mode selectable
+    install_cmd = "python setup.py develop"
+    result = run_cmd_in_environment(install_cmd, environment, cwd=repodir)
+    return result
 
 def mk_compound_cmd(*cmds):
     from sys import platform
@@ -101,13 +108,11 @@ def mk_compound_cmd(*cmds):
 
     return sep.join(cmds)
 
-# currently only for mac/linux
-# modify for windows
-def run_cmd_in_environment(cmd, environment):
+def run_cmd_in_environment(cmd, environment,cwd=None):
     global condacmd
     compoundcmd = mk_compound_cmd("%s activate %s" % (condacmd, environment), cmd)
     logger.info("command is %s" % compoundcmd)
-    proc = run(compoundcmd, text=True, capture_output=True, shell=True)
+    proc = run(compoundcmd, text=True, capture_output=True, shell=True, cwd=cwd)
     return proc.stdout
 
 def pip_install(environment, packages):

@@ -1,7 +1,8 @@
 import condacmds as cmds
 
+condacmd='mamba'
 python='3.9'
-environment='test-pyme-%s' % python
+environment='test-pyme-%s-%s' % (python,condacmd)
 
 print("removing environment %s" % environment)
 answer = input("Continue?")

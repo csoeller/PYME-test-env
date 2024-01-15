@@ -134,11 +134,11 @@ import logging
 class PymeBuild(object):
     def __init__(self,pythonver,build_dir='build-test',condacmd='conda'):
         self.pythonver = pythonver
-        self.build_dir = pathlib.Path(build_dir)
+        self.build_dir = pathlib.Path(build_dir + "-%s" % condacmd) 
         self.build_dir.mkdir(exist_ok=True)
         self.condacmd = condacmd
         set_condacmd(self.condacmd)
-        self.env = 'test-pyme-%s' % self.pythonver
+        self.env = 'test-pyme-%s-%s' % (self.pythonver,self.condacmd)
 
         # set up logging to file
         logging.basicConfig(

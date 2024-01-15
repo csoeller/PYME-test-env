@@ -7,27 +7,27 @@ import logging
 # if 'exception_name' in nonex:
 #     print("exception: %s" % nonex['exception_name'])
 
-def download_pyme_extra():
-    cmds.download_repo('csoeller/PYME-extra', "build-test")
-    cmds.unpack_snapshot(Path("build-test") / 'PYME-extra.zip', "build-test")
+def download_pyme_extra(env_dir="build-test"):
+    cmds.download_repo('csoeller/PYME-extra', env_dir)
+    cmds.unpack_snapshot(Path(env_dir) / 'PYME-extra.zip', env_dir)
 
-def download_pyme():
-    cmds.download_repo('python-microscopy/python-microscopy', "build-test")
-    cmds.unpack_snapshot(Path("build-test") / 'python-microscopy.zip', "build-test")
+def download_pyme(env_dir="build-test"):
+    cmds.download_repo('python-microscopy/python-microscopy', env_dir)
+    cmds.unpack_snapshot(Path(env_dir) / 'python-microscopy.zip', env_dir)
 
-def build_pyme(environment):
-    ret = cmds.build_repo('python-microscopy/python-microscopy',environment,env_dir="build-test")
+def build_pyme(environment,env_dir="build-test"):
+    ret = cmds.build_repo('python-microscopy/python-microscopy',environment,env_dir=env_dir)
     logging.info("building PYME...")
     logging.info(ret)
 
-def build_pyme_extra(environment):
-    ret = cmds.build_repo('csoeller/PYME-extra',environment,env_dir="build-test")
+def build_pyme_extra(environment,env_dir="build-test"):
+    ret = cmds.build_repo('csoeller/PYME-extra',environment,env_dir=env_dir)
     logging.info("building PYME-extra...")
     logging.info(ret)
 
 
-def pyme_extra_install_plugins(environment):
-    ret = cmds.repo_install_plugins('csoeller/PYME-extra',environment,env_dir="build-test")
+def pyme_extra_install_plugins(environment,env_dir="build-test"):
+    ret = cmds.repo_install_plugins('csoeller/PYME-extra',environment,env_dir=env_dir)
     logging.info("installing PYME-extra plugins...")
     logging.info(ret)
 
@@ -59,8 +59,8 @@ packages = 'pyme-depends'.split()
 result = cmds.conda_install(environment, packages, channels = ['conda-forge','david_baddeley'])
 logging.info(result)
 
-download_pyme()
-build_pyme(environment)
+download_pyme(env_dir=build_dir)
+build_pyme(environment,env_dir=build_dir)
 
 # potentially here: test for succesful pyme base install
 
@@ -72,13 +72,14 @@ packages = 'statsmodels roifile'.split()
 result = cmds.conda_install(environment, packages, channels = ['conda-forge'])
 logging.info(result)
 
+# circle-fit is not available in a recent enough version via conda-forge
 packages = 'circle-fit'.split()
 result = cmds.pip_install(environment, packages)
 logging.info(result)
 
-download_pyme_extra()
-build_pyme_extra(environment)
-pyme_extra_install_plugins(environment)
+download_pyme_extra(env_dir=build_dir)
+build_pyme_extra(environment,env_dir=build_dir)
+pyme_extra_install_plugins(environment,env_dir=build_dir)
 
 # potentially here: test for succesful pyme-extra install
 

@@ -27,29 +27,25 @@ def build_pyme_extra(environment):
 
 
 def pyme_extra_install_plugins(environment):
-    pass
+    ret = cmds.repo_install_plugins('csoeller/PYME-extra',environment,env_dir="build-test")
+    logging.info("installing PYME-extra plugins...")
+    logging.info(ret)
 
 # 0. some basic setup/parameter choices (needs tyding up/streamlining)
 
 # # this makes methods/attributes for the standard parameters available
 # # also does any setup stuff, e.g. create build_dir, setup logging etc
-# pbld = pyme_build(python='3.9', build_dir='build-test')
-# pbld.buildDir() # method or attribute? maybe attribute is shorter
-# pbld.env() # method or attribute? maybe attribute is shorter
+pbld = cmds.PymeBuild(pythonver='3.9', build_dir='build-test', condacmd='conda')
 
-Path("build-test").mkdir(exist_ok=True)
+environment = pbld.env
+build_dir = pbld.build_dir
 
-python='3.9'
-environment='test-pyme-%s' % python
-
-logging.basicConfig(filename=Path("build-test")/('build-%s.log' % environment),
-                    encoding='utf-8', level=logging.DEBUG)
-
+envs = cmds.conda_envs()
 
 # 1. make test environment
 
 if environment not in envs:
-    cc = cmds.conda_create(environment, python, channels=['conda-forge'])
+    cc = cmds.conda_create(environment, pbld.pythonver, channels=['conda-forge'])
     logging.info(cc)
 
 cc = cmds.run_cmd_in_environment('python -V',environment)
@@ -71,9 +67,13 @@ build_pyme(environment)
 # 3. build/install pyme-extra
 
 # pyme-extra dependencies
-packages = 'statsmodels roifile circle-fit'.split()
+packages = 'statsmodels roifile'.split()
 
 result = cmds.conda_install(environment, packages, channels = ['conda-forge'])
+logging.info(result)
+
+packages = 'circle-fit'.split()
+result = cmds.pip_install(environment, packages)
 logging.info(result)
 
 download_pyme_extra()

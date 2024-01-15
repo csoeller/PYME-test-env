@@ -88,14 +88,24 @@ def download_repo(repo, target_dir):
 def repo_dirname(repo,branch='master'):
     return repobasename(repo) + '-%s' % branch
 
-def build_repo(repo,environment,branch='master',env_dir="build-test"):
+def repo_dir(repo,branch='master',env_dir="build-test"):
     import pathlib
+    return pathlib.Path(env_dir) / repo_dirname(repo,branch=branch)
+
+def repo_cmd(cmd,repo,environment,branch='master',env_dir="build-test"):
     # need to see if a relative path is enough
-    repodir = pathlib.Path(env_dir) / repo_dirname(repo,branch=branch)
+    repodir = repo_dir(repo,branch=branch,env_dir=env_dir)
     # we could make the install mode selectable
-    install_cmd = "python setup.py develop"
-    result = run_cmd_in_environment(install_cmd, environment, cwd=repodir)
+    result = run_cmd_in_environment(cmd, environment, cwd=repodir)
     return result
+
+def build_repo(repo,environment,branch='master',env_dir="build-test"):    
+    return repo_cmd("python setup.py develop",repo,environment,
+                    branch=branch,env_dir=env_dir)
+
+def repo_install_plugins(repo,environment,branch='master',env_dir="build-test"):
+    return repo_cmd("python install_plugins.py",repo,environment,
+                    branch=branch,env_dir=env_dir)
 
 def mk_compound_cmd(*cmds):
     from sys import platform
@@ -118,3 +128,30 @@ def run_cmd_in_environment(cmd, environment,cwd=None):
 def pip_install(environment, packages):
     args = ['python', '-m', 'pip', 'install'] + list(packages)
     return run_cmd_in_environment(' '.join(args),environment)
+
+import pathlib
+import logging
+class PymeBuild(object):
+    def __init__(self,pythonver,build_dir='build-test',condacmd='conda'):
+        self.pythonver = pythonver
+        self.build_dir = pathlib.Path(build_dir)
+        self.build_dir.mkdir(exist_ok=True)
+        self.condacmd = condacmd
+        set_condacmd(self.condacmd)
+        self.env = 'test-pyme-%s' % self.pythonver
+
+        # set up logging to file
+        logging.basicConfig(
+            filename=self.build_dir / ('build-%s.log' % self.env),
+            encoding='utf-8',
+            level=logging.DEBUG
+        )
+
+        # set up logging to console
+        console = logging.StreamHandler()
+        console.setLevel(logging.DEBUG)
+        # add the handler to the root logger
+        logging.getLogger('').addHandler(console)
+
+        logger.info('building PYME in env "%s" with python ver %s in "%s"' %
+                    (self.env,self.pythonver,self.build_dir))

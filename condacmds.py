@@ -1,4 +1,5 @@
 import json
+import subprocess
 from subprocess import run
 import re
 import sys
@@ -110,9 +111,9 @@ def repo_install_plugins(repo,environment,branch='master',build_dir="build-test"
 def mk_compound_cmd(*cmds):
     from sys import platform
     if platform == "linux" or platform == "linux2":
-        sep = ' ; '
+        sep = ' && '
     elif platform == "darwin":
-        sep = ' ; '
+        sep = ' && '
     elif platform == "win32":
         sep = ' && '
 
@@ -120,9 +121,24 @@ def mk_compound_cmd(*cmds):
 
 def run_cmd_in_environment(cmd, environment,cwd=None):
     global condacmd
-    compoundcmd = mk_compound_cmd("%s activate %s" % (condacmd, environment), cmd)
+    import platform
+    if platform.system() in ['Linux','Darwin']: # should be general darwin or linux with unix type shells
+        # for why to do this, see https://copyprogramming.com/howto/conda-activate-command-not-working-on-mac#conda-activate-command-not-working-on-mac
+        # to find path to conda.sh we could build on the following
+        #            import shutil
+        #            shutil.which('conda')
+        # hardcode for now
+        # TODO: FIX
+        cmds = ['source $HOME/miniconda3/etc/profile.d/conda.sh',
+                "%s activate %s" % (condacmd, environment),
+                cmd]
+    else:
+        cmds = ["%s activate %s" % (condacmd, environment),
+                cmd]
+    compoundcmd = mk_compound_cmd(*cmds)
     logger.info("command is %s" % compoundcmd)
-    proc = run(compoundcmd, text=True, capture_output=True, shell=True, cwd=cwd)
+    # note the use of stdout=... and stderr=... captures STDERR for us; capture_output=True does not seem to do that
+    proc = run(compoundcmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, cwd=cwd)
     return proc.stdout
 
 def pip_install(environment, packages):

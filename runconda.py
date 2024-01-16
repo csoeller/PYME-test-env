@@ -69,13 +69,35 @@ if environment not in envs:
 cc = cmds.run_cmd_in_environment('python -V',environment)
 logging.info("got python version info: %s" % cc)
 
-# 2. build/install pyme and dependies
+# 2. build/install pyme and dependencies
 
 # pyme-depends
-packages = 'pyme-depends'.split()
+import platform
+if platform.machine() != 'arm64':
+    packages = 'pyme-depends'.split()
     
-result = cmds.conda_install(environment, packages, channels = ['conda-forge','david_baddeley'])
-logging.info(result)
+    result = cmds.conda_install(environment, packages, channels = ['conda-forge','david_baddeley'])
+    logging.info(result)
+else:
+    # mac on arm has no pre-built pyme-depends
+    # start off with numpy/scipy
+    package_stringset = 'scipy numpy "libblas=*=*accelerate"'.split()
+    result = cmds.conda_install(environment, package_stringset, channels = ['conda-forge'])
+    logging.info(result)
+
+    # next the main other dependecies
+    package_sets = ['matplotlib pytables pyopengl jinja2 cython pip requests pyyaml psutil pandas scikit-image scikit-learn sphinx toposort pybind11'.split(),
+                    'traits traitsui==7.1.0 pyface==7.1.0'.split(),
+                    'python.app'.split(),
+                    ]
+    for packages in package_sets:
+        result = cmds.conda_install(environment, packages, channels = ['conda-forge'])
+        logging.info(result)
+
+    # now pip install wx
+    result = cmds.pip_install(environment, ['wxpython'])
+    logging.info(result)
+
 
 download_pyme(build_dir=build_dir)
 build_pyme(environment,build_dir=build_dir)

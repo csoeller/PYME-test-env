@@ -119,17 +119,25 @@ def mk_compound_cmd(*cmds):
 
     return sep.join(cmds)
 
+def condash_location():
+    import shutil
+    import pathlib
+    condapth = pathlib.Path(shutil.which('conda'))
+    parts = condapth.parts
+    if 'condabin' in parts:
+        initial_path = pathlib.Path().joinpath(*parts[0:parts.index('condabin')])
+        condash_path =  initial_path / 'etc/profile.d/conda.sh'
+        if condash_path.exists():
+            return condash_path
+    raise RuntimeError('cannot find conda.sh')
+
 def run_cmd_in_environment(cmd, environment,cwd=None):
     global condacmd
     import platform
     if platform.system() in ['Linux','Darwin']: # should be general darwin or linux with unix type shells
-        # for why to do this, see https://copyprogramming.com/howto/conda-activate-command-not-working-on-mac#conda-activate-command-not-working-on-mac
-        # to find path to conda.sh we could build on the following
-        #            import shutil
-        #            shutil.which('conda')
-        # hardcode for now
-        # TODO: FIX
-        cmds = ['source $HOME/miniconda3/etc/profile.d/conda.sh',
+        # for why we do this, see https://copyprogramming.com/howto/conda-activate-command-not-working-on-mac
+        # to find conda.sh we work on the path to conda as a starting point, see function def above
+        cmds = ['source %s' % condash_location(),
                 "%s activate %s" % (condacmd, environment),
                 cmd]
     else:

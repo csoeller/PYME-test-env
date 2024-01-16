@@ -2,6 +2,7 @@ build-test/
 build-test-mamba/
 build-test-conda/
 *~
+.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

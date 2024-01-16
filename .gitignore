@@ -1,6 +1,7 @@
 build-test/
 build-test-mamba/
 build-test-conda/
+build-test*/
 *~
 .DS_Store
 

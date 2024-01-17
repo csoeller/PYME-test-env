@@ -65,6 +65,13 @@ envs = cmds.conda_envs()
 if environment not in envs:
     cc = cmds.conda_create(environment, pbld.pythonver, channels=['conda-forge'])
     logging.info(cc)
+else:
+    print('environment %s already exists' % environment)
+    answer = input("Continue?")
+    if answer.lower() not in ["y","yes"]:
+        print("aborting...")
+        import sys
+        sys.exit(0)
 
 cc = cmds.run_cmd_in_environment('python -V',environment)
 logging.info("got python version info: %s" % cc)

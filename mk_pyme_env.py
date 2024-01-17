@@ -79,9 +79,14 @@ logging.info("got python version info: %s" % cc)
 # 2. build/install pyme and dependencies
 
 # pyme-depends
+# current constraints:
+# matplotlib=3.6: matplotlib 3.7.X onwards backend_wx.cursord dictionaries are removed;
+#                 3.8.X removes error_msg_wx function in backend_wx;
+#                 both are used in PYME/DSView/modules/graphViewPanel.py
+# traitsui==7.1.0 pyface==7.1.0: what is the issue?
 import platform
 if platform.machine() != 'arm64':
-    packages = 'pyme-depends'.split()
+    packages = 'matplotlib=3.6 pyme-depends'.split()
     
     result = cmds.conda_install(environment, packages, channels = ['conda-forge','david_baddeley'])
     logging.info(result)
@@ -93,7 +98,7 @@ else:
     logging.info(result)
 
     # next the main other dependecies
-    package_sets = ['matplotlib pytables pyopengl jinja2 cython pip requests pyyaml psutil pandas scikit-image scikit-learn sphinx toposort pybind11'.split(),
+    package_sets = ['matplotlib=3.6 pytables pyopengl jinja2 cython pip requests pyyaml psutil pandas scikit-image scikit-learn sphinx toposort pybind11'.split(),
                     'traits traitsui==7.1.0 pyface==7.1.0'.split(),
                     'python.app'.split(),
                     ]

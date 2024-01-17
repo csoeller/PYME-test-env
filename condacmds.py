@@ -126,9 +126,16 @@ def condash_location():
     parts = condapth.parts
     if 'condabin' in parts:
         initial_path = pathlib.Path().joinpath(*parts[0:parts.index('condabin')])
-        condash_path =  initial_path / 'etc/profile.d/conda.sh'
-        if condash_path.exists():
-            return condash_path
+    elif 'bin' in parts:
+        initial_path = pathlib.Path().joinpath(*parts[0:parts.index('bin')])
+    else:
+        logging.warn("condabin or bin not in path %s for conda" % condapth)
+        raise RuntimeError('cannot find conda.sh')
+    condash_path =  initial_path / 'etc/profile.d/conda.sh'
+    if condash_path.exists():
+        return condash_path
+    else:
+        logging.warn("condash at path %s does not exist" % condash_path)
     raise RuntimeError('cannot find conda.sh')
 
 def run_cmd_in_environment(cmd, environment,cwd=None):

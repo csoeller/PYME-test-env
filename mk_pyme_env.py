@@ -97,6 +97,7 @@ logging.info("got python version info: %s" % cc)
 #                 probably implicitly established via pyme-depends based install
 import platform
 if platform.machine() != 'arm64':
+    # the initial matplotlib pinning should ensure we do not get a too recent version 
     packages = 'matplotlib=3.6 pyme-depends'.split()
     
     result = cmds.conda_install(environment, packages, channels = ['conda-forge','david_baddeley'])
@@ -104,7 +105,7 @@ if platform.machine() != 'arm64':
 else:
     # NOTE: mac on arm has no pre-built pyme-depends - we need to install all the required packages "manually" (in a fashion)
     # start off with numpy/scipy
-    # the "libblas=*=*accelerate" arguments according to a number of sites
+    # the "libblas=*=*accelerate" arguments according to a number of sites, e.g. https://github.com/joblib/threadpoolctl/issues/135
     package_stringset = 'scipy numpy "libblas=*=*accelerate"'.split()
     result = cmds.conda_install(environment, package_stringset, channels = ['conda-forge'])
     logging.info(result)

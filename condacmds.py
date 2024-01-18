@@ -5,6 +5,10 @@ import re
 import sys
 import logging
 
+####################################
+# conda/mamba/pip handling code
+####################################
+
 condacmd = "conda"
 logger = logging.getLogger(__name__)
 
@@ -63,6 +67,63 @@ def conda_install(environment, packages, channels = None):
     proc = run(cmd, text=True, capture_output=True)
     return proc.stdout
 
+def mk_compound_cmd(*cmds):
+    from sys import platform
+    if platform == "linux" or platform == "linux2":
+        sep = ' && '
+    elif platform == "darwin":
+        sep = ' && '
+    elif platform == "win32":
+        sep = ' && '
+
+    return sep.join(cmds)
+
+def condash_location():
+    import shutil
+    import pathlib
+    condapth = pathlib.Path(shutil.which('conda'))
+    parts = condapth.parts
+    if 'condabin' in parts:
+        initial_path = pathlib.Path().joinpath(*parts[0:parts.index('condabin')])
+    elif 'bin' in parts:
+        initial_path = pathlib.Path().joinpath(*parts[0:parts.index('bin')])
+    else:
+        logging.warn("condabin or bin not in path %s for conda" % condapth)
+        raise RuntimeError('cannot find conda.sh')
+    condash_path =  initial_path / 'etc/profile.d/conda.sh'
+    if condash_path.exists():
+        return condash_path
+    else:
+        logging.warn("condash at path %s does not exist" % condash_path)
+    raise RuntimeError('cannot find conda.sh')
+
+def run_cmd_in_environment(cmd, environment,cwd=None):
+    global condacmd
+    import platform
+    if platform.system() in ['Linux','Darwin']: # should be general darwin or linux with unix type shells
+        # for why we do this, see https://copyprogramming.com/howto/conda-activate-command-not-working-on-mac
+        # to find conda.sh we try to find conda.sh starting from the path to conda, see condash_location() above
+        cmds = ['source %s' % condash_location(),
+                "%s activate %s" % (condacmd, environment),
+                cmd]
+    else:
+        cmds = ["%s activate %s" % (condacmd, environment),
+                cmd]
+    compoundcmd = mk_compound_cmd(*cmds)
+    logger.info("command is %s" % compoundcmd)
+    # note the use of stdout=... and stderr=... captures STDERR for us; capture_output=True does not seem to do that
+    proc = run(compoundcmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, cwd=cwd)
+    return proc.stdout
+
+def pip_install(environment, packages):
+    args = ['python', '-m', 'pip', 'install'] + list(packages)
+    return run_cmd_in_environment(' '.join(args),environment)
+
+#################################
+# github repository handling code
+#################################
+
+
 from urllib.parse import urljoin
 def repo_url(repo,branch='master'):
     snapshot_path = '%s/archive/refs/heads/%s.zip' % (repo,branch)
@@ -108,57 +169,9 @@ def repo_install_plugins(repo,environment,branch='master',build_dir="build-test"
     return repo_cmd("python install_plugins.py",repo,environment,
                     branch=branch,build_dir=build_dir)
 
-def mk_compound_cmd(*cmds):
-    from sys import platform
-    if platform == "linux" or platform == "linux2":
-        sep = ' && '
-    elif platform == "darwin":
-        sep = ' && '
-    elif platform == "win32":
-        sep = ' && '
-
-    return sep.join(cmds)
-
-def condash_location():
-    import shutil
-    import pathlib
-    condapth = pathlib.Path(shutil.which('conda'))
-    parts = condapth.parts
-    if 'condabin' in parts:
-        initial_path = pathlib.Path().joinpath(*parts[0:parts.index('condabin')])
-    elif 'bin' in parts:
-        initial_path = pathlib.Path().joinpath(*parts[0:parts.index('bin')])
-    else:
-        logging.warn("condabin or bin not in path %s for conda" % condapth)
-        raise RuntimeError('cannot find conda.sh')
-    condash_path =  initial_path / 'etc/profile.d/conda.sh'
-    if condash_path.exists():
-        return condash_path
-    else:
-        logging.warn("condash at path %s does not exist" % condash_path)
-    raise RuntimeError('cannot find conda.sh')
-
-def run_cmd_in_environment(cmd, environment,cwd=None):
-    global condacmd
-    import platform
-    if platform.system() in ['Linux','Darwin']: # should be general darwin or linux with unix type shells
-        # for why we do this, see https://copyprogramming.com/howto/conda-activate-command-not-working-on-mac
-        # to find conda.sh we work on the path to conda as a starting point, see function def above
-        cmds = ['source %s' % condash_location(),
-                "%s activate %s" % (condacmd, environment),
-                cmd]
-    else:
-        cmds = ["%s activate %s" % (condacmd, environment),
-                cmd]
-    compoundcmd = mk_compound_cmd(*cmds)
-    logger.info("command is %s" % compoundcmd)
-    # note the use of stdout=... and stderr=... captures STDERR for us; capture_output=True does not seem to do that
-    proc = run(compoundcmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, cwd=cwd)
-    return proc.stdout
-
-def pip_install(environment, packages):
-    args = ['python', '-m', 'pip', 'install'] + list(packages)
-    return run_cmd_in_environment(' '.join(args),environment)
+#################################################################
+# PymeBuild class to collect some info and setup code for a build
+#################################################################
 
 import pathlib
 import logging

@@ -104,10 +104,10 @@ def run_cmd_in_environment(cmd, environment,cwd=None):
         # for why we do this, see https://copyprogramming.com/howto/conda-activate-command-not-working-on-mac
         # to find conda.sh we try to find conda.sh starting from the path to conda, see condash_location() above
         cmds = ['source %s' % condash_location(),
-                "%s activate %s" % (condacmd, environment),
+                "%s activate %s" % ('conda', environment), # we hardcode conda for that, we seem to get 'mamba init' issues in unix shells otherwise
                 cmd]
     else:
-        cmds = ["%s activate %s" % (condacmd, environment),
+        cmds = ["%s activate %s" % ('conda', environment),
                 cmd]
     compoundcmd = mk_compound_cmd(*cmds)
     logger.info("command is %s" % compoundcmd)

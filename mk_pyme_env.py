@@ -105,7 +105,9 @@ if platform.machine() != 'arm64':
 else:
     # NOTE: mac on arm has no pre-built pyme-depends - we need to install all the required packages "manually" (in a fashion)
     # start off with numpy/scipy
-    # the "libblas=*=*accelerate" arguments according to a number of sites, e.g. https://github.com/joblib/threadpoolctl/issues/135
+    # the "libblas=*=*accelerate" arguments according to a number of sites, e.g.
+    #   - https://github.com/joblib/threadpoolctl/issues/135
+    #   - https://github.com/conda-forge/numpy-feedstock/issues/303
     package_stringset = 'scipy numpy "libblas=*=*accelerate"'.split()
     result = cmds.conda_install(environment, package_stringset, channels = ['conda-forge'])
     logging.info(result)

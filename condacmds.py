@@ -138,11 +138,11 @@ def unpack_snapshot(snapshot_file,target_dir):
 def repobasename(repo):
     return repo.split('/')[-1]
     
-def download_repo(repo, target_dir):
+def download_repo(repo, target_dir,branch='master'):
     import requests
     import pathlib
 
-    url = repo_url(repo)
+    url = repo_url(repo,branch=branch)
 
     downloaded_file = pathlib.Path(target_dir) / ("%s.zip" % repobasename(repo))
     downloaded_file.write_bytes(requests.get(url).content)

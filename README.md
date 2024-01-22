@@ -158,3 +158,9 @@ For convenience in removing test environments and build directories we have a li
 	python remove-test-environment.py ...
 
 The idea is to use the same options used to create the environment and it should figure out which environment to remove and where the build directory is. We'll add more docs on this script if needed/requested.
+
+## Issues
+
+We are currently not checking the success of some of the commands properly. This makes debugging issues a little harder and we will consider making this more robust over time if we find the actual usage of this (experimental) project warrants it.
+
+The clean-up script `remove-test-environment.py` docs could be improved.

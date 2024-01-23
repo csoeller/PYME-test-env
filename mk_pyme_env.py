@@ -169,12 +169,20 @@ else:
     result = cmds.conda_install(environment, package_stringset, channels = ['conda-forge'])
     logging.info(result)
 
-    # next the main other dependecies
-    package_sets = [('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
-                    ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
-                    'traits traitsui==7.1.0 pyface==7.1.0'.split(),
-                    'python.app'.split(),
-                    ]
+    if  platform.system() == 'Darwin': # now selected for all macs
+        # next the main other dependecies
+        package_sets = [('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
+                         ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
+                        'traits traitsui==7.1.0 pyface==7.1.0'.split(),
+                        'python.app'.split(),
+                        ]
+    else:
+        package_sets = [('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
+                         ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
+                        'traits traitsui==7.1.0 pyface==7.1.0'.split(),
+                        'pywin32'.split(),
+                        ]
+ 
     for packages in package_sets:
         result = cmds.conda_install(environment, packages, channels = ['conda-forge'])
         logging.info(result)

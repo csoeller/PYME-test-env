@@ -32,21 +32,24 @@ Packages = {
         'packages' : 'matplotlib<=3.6 pyme-depends'.split()
     },
     'no_pyme_depends' : {
-       'packagelists_mac' : [
-           'scipy numpy "libblas=*=*accelerate"'.split(),
-           ('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
-            ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
-           'traits traitsui==7.1.0 pyface==7.1.0'.split(),
-           'python.app'.split(),
-           ],
-        'packagelists_win' : [
-           'scipy numpy'.split(),
-           ('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
-            ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
-           'traits traitsui==7.1.0 pyface==7.1.0'.split(),
-           'python.app'.split(),
-           ],
-        'pip' : ['wxpython']
+        'packagelists_mac' : {
+            'conda' : [
+                'scipy numpy "libblas=*=*accelerate"'.split(),
+                ('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
+                 ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
+                'traits traitsui==7.1.0 pyface==7.1.0'.split(),
+                'python.app'.split(),
+            ],
+            'pip': ['wxpython']},
+        'packagelists_win' : {
+            'conda': [
+                'scipy numpy'.split(),
+                ('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
+                 ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
+                'traits traitsui==7.1.0 pyface==7.1.0'.split(),
+                'pywin32'.split(),
+            ],
+            'pip': ['wxpython']}        
     }
 }
 
@@ -79,8 +82,10 @@ parser.add_argument('--no-pyme-depends',action="store_true",
 
 
 ### Note
-### we may want to add
+### we may want to add, will enforce from conda-forge over default channel (I think)
 # conda config --set channel_priority strict
+# we should be able to provide this as an option, according to https://docs.conda.io/projects/conda/en/latest/commands/install.html:
+#  --strict-channel-priority
 ### Check how to check, verify and unset
 
 
@@ -102,7 +107,9 @@ pbld = cmds.PymeBuild(pythonver=args.python,
                       environment=args.environment,
                       with_pyme_depends=not args.no_pyme_depends,
                       with_pymex=not args.no_pymex,
-                      with_recipes=args.recipes
+                      with_recipes=args.recipes,
+                      pyme_repo=args.pyme_repo, pyme_branch=args.pyme_branch,
+                      pymex_repo=args.pymex_repo, pymex_branch=args.pymex_branch
                       )
 
 environment = pbld.env
@@ -191,11 +198,19 @@ else:
     result = cmds.pip_install(environment, ['wxpython'])
     logging.info(result)
 
+######################################
+# note that we can get a windows error:
+# error: could not create 'build\temp.win-amd64-cpython-310\Release\Users\soeller\src\PYME-test-env\b-py3.10-mamba\python-microscopy-python-310-compat\PYME\Analysis\points\traveling_salesperson':
+#        The filename or extension is too long
+# silly solution: move PYME-test-env repo close to root of disk and abbreviate build_directory name
+#### There must be a better solution!!
 
 download_pyme(build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch)
 build_pyme(environment,build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch)
 
-# potentially here: test for succesful pyme base install
+# this should fail if our PYME install failed
+result = cmds.run_cmd_in_environment('python -c "import PYME.version; print(PYME.version.version)"',environment,check=True)
+logging.info("Got PYME version %s" % result)
 
 # 3. build/install pyme-extra
 if pbld.with_pymex:

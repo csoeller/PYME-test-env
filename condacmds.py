@@ -179,7 +179,9 @@ class PymeBuild(object):
     def __init__(self,pythonver,build_dir='build-test',condacmd='conda',
                  environment=None, mk_build_dir=True, start_log=True,
                  with_pyme_depends=True,with_pymex=True,
-                 with_recipes=False):
+                 with_recipes=False,
+                 pyme_repo=None, pyme_branch=None,
+                 pymex_repo=None, pymex_branch=None):
         self.pythonver = pythonver
         self.build_dir = pathlib.Path(build_dir +
                                       "-py%s-%s" % (pythonver,condacmd))
@@ -199,6 +201,10 @@ class PymeBuild(object):
             self.logfile = self.build_dir / ('build-%s.log' % self.env)
         else:
             self.logfile = None
+        self.pyme_repo=pyme_repo
+        self.pyme_branch=pyme_branch
+        self.pymex_repo=pymex_repo
+        self.pymex_branch=pymex_branch
 
         if start_log:
             # set up logging to file
@@ -223,4 +229,6 @@ class PymeBuild(object):
         PYME test build: python={self.pythonver}, environment={self.env},
         build_dir={self.build_dir}, condacmd={self.condacmd},
         with_pyme_depends={self.with_pyme_depends}, with_pymex={self.with_pymex},
+        pyme_repo={self.pyme_repo}, pyme_branch={self.pyme_branch},
+        pymex_repo={self.pymex_repo}, pymex_branch={self.pymex_branch},
         with_recipes={self.with_recipes}, logging={self.logging}, logfile={self.logfile}""")

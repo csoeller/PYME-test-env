@@ -181,7 +181,8 @@ class PymeBuild(object):
                  with_pyme_depends=True,with_pymex=True,
                  with_recipes=False,
                  pyme_repo=None, pyme_branch=None,
-                 pymex_repo=None, pymex_branch=None):
+                 pymex_repo=None, pymex_branch=None,
+                 use_git=False):
         self.pythonver = pythonver
         self.build_dir = pathlib.Path(build_dir +
                                       "-py%s-%s" % (pythonver,condacmd))
@@ -205,6 +206,14 @@ class PymeBuild(object):
         self.pyme_branch=pyme_branch
         self.pymex_repo=pymex_repo
         self.pymex_branch=pymex_branch
+
+        self.use_git = use_git
+
+        if self.use_git:
+            try:
+                import git
+            except ImportError:
+                raise RuntimeError("requesting git install but git (from GitPython) could not be imported; check if in correct environment (base) and if GitPython is installed")
 
         if start_log:
             # set up logging to file
@@ -231,4 +240,5 @@ class PymeBuild(object):
         with_pyme_depends={self.with_pyme_depends}, with_pymex={self.with_pymex},
         pyme_repo={self.pyme_repo}, pyme_branch={self.pyme_branch},
         pymex_repo={self.pymex_repo}, pymex_branch={self.pymex_branch},
-        with_recipes={self.with_recipes}, logging={self.logging}, logfile={self.logfile}""")
+        with_recipes={self.with_recipes}, logging={self.logging}, logfile={self.logfile}
+        use_git={self.use_git}""")

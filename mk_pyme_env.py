@@ -2,13 +2,27 @@ import condacmds as cmds
 from pathlib import Path
 import logging
 
-def download_pyme_extra(build_dir="build-test",branch='master',repo='csoeller/PYME-extra'):
-    cmds.download_repo(repo, build_dir,branch=branch)
-    cmds.unpack_snapshot(Path(build_dir) / 'PYME-extra.zip', build_dir)
+# eventually we want to allow a mode 'git' to clone the full repository locally
+def clone_repo(repo,target_dir,branch='master'):
+    import git
 
-def download_pyme(build_dir="build-test",branch='master',repo='python-microscopy/python-microscopy'):
-    cmds.download_repo(repo, build_dir,branch=branch)
-    cmds.unpack_snapshot(Path(build_dir) / 'python-microscopy.zip', build_dir)
+    repo = git.Repo.clone_from(mk_git_url(repo), # we need to define this function
+                               target_dir,
+                               branch=branch)
+
+def download_pyme_extra(build_dir="build-test",branch='master',repo='csoeller/PYME-extra',mode='snapshot'):
+    if mode == 'snapshot':
+        cmds.download_repo(repo, build_dir,branch=branch)
+        cmds.unpack_snapshot(Path(build_dir) / 'PYME-extra.zip', build_dir)
+    else:
+        raise RuntimeError("unknown mode '%s'" % mode)
+    
+def download_pyme(build_dir="build-test",branch='master',repo='python-microscopy/python-microscopy',mode='snapshot'):
+    if mode == 'snapshot':
+        cmds.download_repo(repo, build_dir,branch=branch)
+        cmds.unpack_snapshot(Path(build_dir) / 'python-microscopy.zip', build_dir)
+    else:
+        raise RuntimeError("unknown mode '%s'" % mode)
 
 def build_pyme(environment,build_dir="build-test",repo='python-microscopy/python-microscopy',branch='master'):
     ret = cmds.build_repo(repo,environment,build_dir=build_dir,branch=branch)
@@ -79,6 +93,8 @@ parser.add_argument('--no-pymex',action="store_true",
                     help='omit downloading and installing PYME-extra')
 parser.add_argument('--no-pyme-depends',action="store_true",
                     help='install from package list rather than using pyme-depends')
+parser.add_argument('--use-git',action="store_true",
+                    help='clone git repo locally rather than just downloading snapshot')
 
 
 ### Note
@@ -109,7 +125,8 @@ pbld = cmds.PymeBuild(pythonver=args.python,
                       with_pymex=not args.no_pymex,
                       with_recipes=args.recipes,
                       pyme_repo=args.pyme_repo, pyme_branch=args.pyme_branch,
-                      pymex_repo=args.pymex_repo, pymex_branch=args.pymex_branch
+                      pymex_repo=args.pymex_repo, pymex_branch=args.pymex_branch,
+                      use_git=args.use_git
                       )
 
 environment = pbld.env

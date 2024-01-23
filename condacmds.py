@@ -46,7 +46,7 @@ def conda_create(environment,python='3.7', channels = None):
     channelspecs = []
     for chan in channels:
         channelspecs += ["--channel", chan]
-    cmd = [condacmd, "create", "--json", "-y", "--name", environment] + channelspecs + packages
+    cmd = [condacmd, "create", "--quiet", "--json", "-y", "--name", environment] + channelspecs + packages
     logger.info("command is '%s'" % cmd)
     proc = run(cmd, text=True, capture_output=True)
     return proc.stdout

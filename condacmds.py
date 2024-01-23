@@ -97,7 +97,7 @@ def condash_location():
         logging.warn("condash at path %s does not exist" % condash_path)
     raise RuntimeError('cannot find conda.sh')
 
-def run_cmd_in_environment(cmd, environment,cwd=None):
+def run_cmd_in_environment(cmd, environment,**kwargs): # kwargs are passed to subprocess.run()
     global condacmd
     import platform
     if platform.system() in ['Linux','Darwin']: # should be general darwin or linux with unix type shells
@@ -112,7 +112,7 @@ def run_cmd_in_environment(cmd, environment,cwd=None):
     compoundcmd = mk_compound_cmd(*cmds)
     logger.info("command is %s" % compoundcmd)
     # note the use of stdout=... and stderr=... captures STDERR for us; capture_output=True does not seem to do that
-    proc = run(compoundcmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, cwd=cwd)
+    proc = run(compoundcmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, **kwargs)
     return proc.stdout
 
 def pip_install(environment, packages):
@@ -177,7 +177,9 @@ import pathlib
 import logging
 class PymeBuild(object):
     def __init__(self,pythonver,build_dir='build-test',condacmd='conda',
-                 environment=None, mk_build_dir=True, start_log=True):
+                 environment=None, mk_build_dir=True, start_log=True,
+                 with_pyme_depends=True,with_pymex=True,
+                 with_recipes=False):
         self.pythonver = pythonver
         self.build_dir = pathlib.Path(build_dir +
                                       "-py%s-%s" % (pythonver,condacmd))
@@ -189,11 +191,19 @@ class PymeBuild(object):
             self.env = 'test-pyme-%s-%s' % (self.pythonver,self.condacmd)
         else:
             self.env = environment
+        self.with_pyme_depends = with_pyme_depends
+        self.with_pymex = with_pymex
+        self.with_recipes = with_recipes
+        self.logging = start_log
+        if self.logging:
+            self.logfile = self.build_dir / ('build-%s.log' % self.env)
+        else:
+            self.logfile = None
 
         if start_log:
             # set up logging to file
             logging.basicConfig(
-                filename=self.build_dir / ('build-%s.log' % self.env),
+                filename=self.logfile,
                 encoding='utf-8',
                 level=logging.DEBUG
             )
@@ -204,5 +214,13 @@ class PymeBuild(object):
             # add the handler to the root logger
             logging.getLogger('').addHandler(console)
 
-            logger.info('building PYME in env "%s" with python ver %s in "%s"' %
-                        (self.env,self.pythonver,self.build_dir))
+            logger.info('building PYME...')
+            logger.info(self)
+
+    def __str__(self):
+        from textwrap import dedent
+        return dedent(f"""
+        PYME test build: python={self.pythonver}, environment={self.env},
+        build_dir={self.build_dir}, condacmd={self.condacmd},
+        with_pyme_depends={self.with_pyme_depends}, with_pymex={self.with_pymex},
+        with_recipes={self.with_recipes}, logging={self.logging}, logfile={self.logfile}""")

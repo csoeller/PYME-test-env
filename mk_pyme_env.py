@@ -20,11 +20,35 @@ def build_pyme_extra(environment,build_dir="build-test",repo='csoeller/PYME-extr
     logging.info("building PYME-extra...")
     logging.info(ret)
 
-
 def pyme_extra_install_plugins(environment,build_dir="build-test",repo='csoeller/PYME-extra',branch='master'):
     ret = cmds.repo_install_plugins(repo,environment,build_dir=build_dir,branch=branch)
     logging.info("installing PYME-extra plugins...")
     logging.info(ret)
+
+# first attempt at a central package list
+# not yet used 
+Packages = {
+    'with_pyme_depends' : {
+        'packages' : 'matplotlib<=3.6 pyme-depends'.split()
+    },
+    'no_pyme_depends' : {
+       'packagelists_mac' : [
+           'scipy numpy "libblas=*=*accelerate"'.split(),
+           ('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
+            ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
+           'traits traitsui==7.1.0 pyface==7.1.0'.split(),
+           'python.app'.split(),
+           ],
+        'packagelists_win' : [
+           'scipy numpy'.split(),
+           ('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
+            ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
+           'traits traitsui==7.1.0 pyface==7.1.0'.split(),
+           'python.app'.split(),
+           ],
+        'pip' : ['wxpython']
+    }
+}
 
 # 0. some basic setup/parameter choices via command line arguments
 
@@ -48,8 +72,16 @@ parser.add_argument('--pymex-repo',default='csoeller/PYME-extra',
                     help='github repository name of PYME-extra; defaults to csoeller/PYME-extra')
 parser.add_argument('--pymex-branch',default='master',
                     help='branch of PYME-extra to use in build; defaults to master')
+parser.add_argument('--no-pymex',action="store_true",
+                    help='omit downloading and installing PYME-extra')
+parser.add_argument('--no-pyme-depends',action="store_true",
+                    help='install from package list rather than using pyme-depends')
 
 
+### Note
+### we may want to add
+# conda config --set channel_priority strict
+### Check how to check, verify and unset
 
 
 # other possible arguments to enable
@@ -68,6 +100,9 @@ pbld = cmds.PymeBuild(pythonver=args.python,
                       build_dir=args.buildstem,
                       condacmd=args.condacmd,
                       environment=args.environment,
+                      with_pyme_depends=not args.no_pyme_depends,
+                      with_pymex=not args.no_pymex,
+                      with_recipes=args.recipes
                       )
 
 environment = pbld.env
@@ -89,14 +124,14 @@ else:
         sys.exit(0)
 
 # just a quick check that we get the expected python version and can invoke it ok
-cc = cmds.run_cmd_in_environment('python -V',environment)
+cc = cmds.run_cmd_in_environment('python -V',environment,check=True)
 logging.info("got python version info: %s" % cc)
 
 # 2. build/install pyme and dependencies
 
 # pyme-depends
 # current constraints:
-# matplotlib=3.6: matplotlib 3.7.X onwards backend_wx.cursord dictionaries are removed;
+# matplotlib<=3.6: matplotlib 3.7.X onwards backend_wx.cursord dictionaries are removed;
 #                 3.8.X removes error_msg_wx function in backend_wx;
 #                 both are used in PYME/DSView/modules/graphViewPanel.py
 #                 this one needs enforcing both with pyme-depends and full package based installs (as on arm64)
@@ -104,9 +139,11 @@ logging.info("got python version info: %s" % cc)
 #                 this one needs enforcing only with full package based installs (as on arm64);
 #                 probably implicitly established via pyme-depends based install
 import platform
-if platform.machine() != 'arm64':
+from packaging import version # should be available in the base install; otherwise we may need "# conda/pip install packaging"
+prepy3_10 = version.parse(pbld.pythonver) < version.parse("3.10")
+if platform.machine() != 'arm64' and prepy3_10 and pbld.with_pyme_depends:
     # the initial matplotlib pinning should ensure we do not get a too recent version 
-    packages = 'matplotlib=3.6 pyme-depends'.split()
+    packages = 'matplotlib<=3.6 pyme-depends'.split()
     
     result = cmds.conda_install(environment, packages, channels = ['conda-forge','david_baddeley'])
     logging.info(result)
@@ -116,12 +153,24 @@ else:
     # the "libblas=*=*accelerate" arguments according to a number of sites, e.g.
     #   - https://github.com/joblib/threadpoolctl/issues/135
     #   - https://github.com/conda-forge/numpy-feedstock/issues/303
-    package_stringset = 'scipy numpy "libblas=*=*accelerate"'.split()
+
+    # note docs on blas selection: https://conda-forge.org/docs/maintainer/knowledge_base.html#switching-blas-implementation
+    # possible options
+    # conda install "libblas=*=*mkl"
+    # conda install "libblas=*=*openblas"
+    # conda install "libblas=*=*blis"
+    # conda install "libblas=*=*accelerate"
+    # conda install "libblas=*=*netlib"
+
+    if platform.system() == 'Darwin': # now selected for all macs
+        package_stringset = 'scipy numpy "libblas=*=*accelerate"'.split()
+    else:
+        package_stringset = 'scipy numpy'.split()
     result = cmds.conda_install(environment, package_stringset, channels = ['conda-forge'])
     logging.info(result)
 
     # next the main other dependecies
-    package_sets = [('matplotlib=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
+    package_sets = [('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
                     ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
                     'traits traitsui==7.1.0 pyface==7.1.0'.split(),
                     'python.app'.split(),
@@ -141,23 +190,23 @@ build_pyme(environment,build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_
 # potentially here: test for succesful pyme base install
 
 # 3. build/install pyme-extra
+if pbld.with_pymex:
+    # pyme-extra dependencies
+    packages = 'statsmodels roifile'.split()
 
-# pyme-extra dependencies
-packages = 'statsmodels roifile'.split()
+    result = cmds.conda_install(environment, packages, channels = ['conda-forge'])
+    logging.info(result)
 
-result = cmds.conda_install(environment, packages, channels = ['conda-forge'])
-logging.info(result)
+    # circle-fit is not available in a recent enough version via conda-forge
+    packages = 'circle-fit'.split()
+    result = cmds.pip_install(environment, packages)
+    logging.info(result)
 
-# circle-fit is not available in a recent enough version via conda-forge
-packages = 'circle-fit'.split()
-result = cmds.pip_install(environment, packages)
-logging.info(result)
+    download_pyme_extra(build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch)
+    build_pyme_extra(environment,build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch)
+    pyme_extra_install_plugins(environment,build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch)
 
-download_pyme_extra(build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch)
-build_pyme_extra(environment,build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch)
-pyme_extra_install_plugins(environment,build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch)
-
-if args.recipes:
+if pbld.with_recipes:
     output = cmds.run_cmd_in_environment('python install_config_files.py',environment)
     logging.info(output)
 

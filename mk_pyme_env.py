@@ -3,6 +3,10 @@ from pathlib import Path
 import logging
 
 # eventually we want to allow a mode 'git' to clone the full repository locally
+def mk_git_url(repo):
+    from urllib.parse import urljoin
+    return urljoin('https://github.com/', "%s.git" % repo)
+
 def clone_repo(repo,target_dir,branch='master'):
     import git
 
@@ -14,6 +18,9 @@ def download_pyme_extra(build_dir="build-test",branch='master',repo='csoeller/PY
     if mode == 'snapshot':
         cmds.download_repo(repo, build_dir,branch=branch)
         cmds.unpack_snapshot(Path(build_dir) / 'PYME-extra.zip', build_dir)
+    elif mode =='git':
+        target_dir = Path(build_dir) / cmds.repo_dirname(repo,branch=branch)
+        clone_repo(repo,target_dir,branch=branch)
     else:
         raise RuntimeError("unknown mode '%s'" % mode)
     
@@ -21,6 +28,9 @@ def download_pyme(build_dir="build-test",branch='master',repo='python-microscopy
     if mode == 'snapshot':
         cmds.download_repo(repo, build_dir,branch=branch)
         cmds.unpack_snapshot(Path(build_dir) / 'python-microscopy.zip', build_dir)
+    elif mode =='git':
+        target_dir = Path(build_dir) / cmds.repo_dirname(repo,branch=branch)
+        clone_repo(repo,target_dir,branch=branch)
     else:
         raise RuntimeError("unknown mode '%s'" % mode)
 
@@ -222,7 +232,12 @@ else:
 # silly solution: move PYME-test-env repo close to root of disk and abbreviate build_directory name
 #### There must be a better solution!!
 
-download_pyme(build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch)
+if pbld.use_git:
+    download_mode = 'git'
+else:
+    download_mode = 'snapshot'
+
+download_pyme(build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch,mode=download_mode)
 build_pyme(environment,build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch)
 
 # this should fail if our PYME install failed
@@ -242,7 +257,7 @@ if pbld.with_pymex:
     result = cmds.pip_install(environment, packages)
     logging.info(result)
 
-    download_pyme_extra(build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch)
+    download_pyme_extra(build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch,mode=download_mode)
     build_pyme_extra(environment,build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch)
     pyme_extra_install_plugins(environment,build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch)
 

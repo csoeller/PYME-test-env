@@ -173,7 +173,13 @@ logging.info("got python version info: %s" % cc)
 #                 this one needs enforcing only with full package based installs (as on arm64);
 #                 probably implicitly established via pyme-depends based install
 import platform
-from packaging import version # should be available in the base install; otherwise we may need "# conda/pip install packaging"
+
+try:
+    # should be available in the base install; otherwise we may need "# conda/pip install packaging"
+    from packaging import version
+except ImportError:
+    raise RuntimeError("need to install module 'packaging'; e.g. 'conda/pip install packaging'")
+
 prepy3_10 = version.parse(pbld.pythonver) < version.parse("3.10")
 if platform.machine() != 'arm64' and prepy3_10 and pbld.with_pyme_depends:
     # the initial matplotlib pinning should ensure we do not get a too recent version 

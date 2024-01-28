@@ -219,7 +219,7 @@ class PymeBuild(object):
             # set up logging to file
             logging.basicConfig(
                 filename=self.logfile,
-                encoding='utf-8',
+                # encoding='utf-8', # earlier py 3.X has no encoding option yet
                 level=logging.DEBUG
             )
 

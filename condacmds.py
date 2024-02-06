@@ -12,6 +12,15 @@ import logging
 condacmd = "conda"
 logger = logging.getLogger(__name__)
 
+# general approach taken: we run conda or pip commands in subprocesses
+# there is a decent discussion in this stackoverflow question
+# https://stackoverflow.com/questions/41767340/using-conda-install-within-a-python-script
+# the answer by ws_e_c421 makes a good case which we adopt here
+# the answer also references the pip docs https://pip.pypa.io/en/stable/user_guide/#using-pip-from-your-program
+# which make exactly this point
+# while conda seems not to have a dedicated manual discussion of this issue the points and examples
+# given in ws_e_c421's answer make a good case to treat conda (or mamba) just like pip in this regard
+
 def set_condacmd(cmd):
     global condacmd
     condacmd = cmd 

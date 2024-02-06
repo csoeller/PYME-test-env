@@ -53,12 +53,26 @@ def pyme_extra_install_plugins(environment,build_dir="build-test",repo='csoeller
 # not yet used 
 Packages = {
     'with_pyme_depends' : {
+        # the initial matplotlib pinning should ensure we do not get a too recent version 
         'packages' : 'matplotlib<=3.6 pyme-depends'.split()
     },
     'no_pyme_depends' : {
         'packagelists_mac' : {
             'conda' : [
+                # start off with numpy/scipy
+                # the "libblas=*=*accelerate" arguments according to a number of sites, e.g.
+                #   - https://github.com/joblib/threadpoolctl/issues/135
+                #   - https://github.com/conda-forge/numpy-feedstock/issues/303
+                
+                # note docs on blas selection: https://conda-forge.org/docs/maintainer/knowledge_base.html#switching-blas-implementation
+                # possible options
+                # conda install "libblas=*=*mkl"
+                # conda install "libblas=*=*openblas"
+                # conda install "libblas=*=*blis"
+                # conda install "libblas=*=*accelerate"
+                # conda install "libblas=*=*netlib"
                 'scipy numpy "libblas=*=*accelerate"'.split(),
+                # next the main other dependecies
                 ('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
                  ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
                 'traits traitsui==7.1.0 pyface==7.1.0'.split(),
@@ -67,7 +81,7 @@ Packages = {
             'pip': ['wxpython']},
         'packagelists_win' : {
             'conda': [
-                'scipy numpy'.split(),
+                'scipy numpy'.split(), # here we should have some suitably fast installation by default but may want to check
                 ('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
                  ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
                 'traits traitsui==7.1.0 pyface==7.1.0'.split(),
@@ -183,54 +197,29 @@ except ImportError:
 
 prepy3_10 = version.parse(pbld.pythonver) < version.parse("3.10")
 if platform.machine() != 'arm64' and prepy3_10 and pbld.with_pyme_depends:
-    # the initial matplotlib pinning should ensure we do not get a too recent version 
-    packages = 'matplotlib<=3.6 pyme-depends'.split()
+    packages = Packages['with_pyme_depends']['packages']
     
     result = cmds.conda_install(environment, packages, channels = ['conda-forge','david_baddeley'])
     logging.info(result)
 else:
     # NOTE: mac on arm has no pre-built pyme-depends - we need to install all the required packages "manually" (in a fashion)
-    # start off with numpy/scipy
-    # the "libblas=*=*accelerate" arguments according to a number of sites, e.g.
-    #   - https://github.com/joblib/threadpoolctl/issues/135
-    #   - https://github.com/conda-forge/numpy-feedstock/issues/303
-
-    # note docs on blas selection: https://conda-forge.org/docs/maintainer/knowledge_base.html#switching-blas-implementation
-    # possible options
-    # conda install "libblas=*=*mkl"
-    # conda install "libblas=*=*openblas"
-    # conda install "libblas=*=*blis"
-    # conda install "libblas=*=*accelerate"
-    # conda install "libblas=*=*netlib"
-
-    if platform.system() == 'Darwin': # now selected for all macs
-        package_stringset = 'scipy numpy "libblas=*=*accelerate"'.split()
-    else:
-        package_stringset = 'scipy numpy'.split()
-    result = cmds.conda_install(environment, package_stringset, channels = ['conda-forge'])
-    logging.info(result)
 
     if  platform.system() == 'Darwin': # now selected for all macs
-        # next the main other dependecies
-        package_sets = [('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
-                         ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
-                        'traits traitsui==7.1.0 pyface==7.1.0'.split(),
-                        'pyfftw zeroconf python.app'.split(),
-                        ]
+        package_sets = Packages['no_pyme_depends']['packagelists_mac']['conda']
     else:
-        package_sets = [('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
-                         ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
-                        'traits traitsui==7.1.0 pyface==7.1.0'.split(),
-                        'pyfftw zeroconf pywin32'.split(),
-                        # pyserial??
-                        ]
+        package_sets = Packages['no_pyme_depends']['packagelists_win']['conda']
  
     for packages in package_sets:
         result = cmds.conda_install(environment, packages, channels = ['conda-forge'])
         logging.info(result)
 
-    # now pip install wx - the conda install was deemed not working at the time; may need to check again
-    result = cmds.pip_install(environment, ['wxpython'])
+    if  platform.system() == 'Darwin': # now selected for all macs
+        # next the main other dependecies
+        pip_package_set = Packages['no_pyme_depends']['packagelists_mac']['pip']
+    else:
+        pip_package_set = Packages['no_pyme_depends']['packagelists_win']['pip']
+    # now pip install packages that seem to need a pip install (always subject to checks if really required)
+    result = cmds.pip_install(environment, pip_package_set)
     logging.info(result)
 
 ######################################

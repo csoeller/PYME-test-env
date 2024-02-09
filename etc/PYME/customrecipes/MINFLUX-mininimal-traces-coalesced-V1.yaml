@@ -1,0 +1,30 @@
+- localisations.AddPipelineDerivedVars:
+    inputEvents: ''
+    inputFitResults: FitResults
+    outputLocalizations: Localizations
+- localisations.ProcessColour:
+    input: Localizations
+    output: colour_mapped
+- tablefilters.FilterTable:
+    filters:
+      cfr:
+      - 0.0
+      - 0.75
+      clumpSize:
+      - 3.1
+      - 1000.0
+      error_x:
+      - 0.0
+      - 15.0
+      error_y:
+      - 0.0
+      - 15.0
+      error_z:
+      - 0.0
+      - 20.0
+    inputName: colour_mapped
+    outputName: with_clumps
+- localisations.MergeClumps:
+    discardTrivial: true
+    inputName: with_clumps
+    outputName: coalesced_nz

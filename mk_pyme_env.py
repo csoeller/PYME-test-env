@@ -94,6 +94,9 @@ Packages = {
 
 # 0. some basic setup/parameter choices via command line arguments
 
+import sys
+
+
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--python',default='3.9',
@@ -159,6 +162,25 @@ build_dir = pbld.build_dir
 
 envs = cmds.conda_envs()
 
+logging.info("Command called as\n\n")
+logging.info(" ".join(sys.argv))
+
+
+# some checks if some of the required packages are available
+
+try:
+    # should be available in the base install; otherwise we may need "# conda/pip install packaging"
+    from packaging import version
+except ImportError:
+    raise RuntimeError("need to install module 'packaging'; e.g. 'conda/pip install packaging'")
+
+if pbld.use_git:
+    try:
+        import git
+    except ImportError:
+        raise RuntimeError("requesting git install but git (from GitPython) could not be imported; check if in correct environment (base) and if GitPython is installed")
+
+
 # 1. make test environment
 
 if environment not in envs:
@@ -188,12 +210,6 @@ logging.info("got python version info: %s" % cc)
 #                 this one needs enforcing only with full package based installs (as on arm64);
 #                 probably implicitly established via pyme-depends based install
 import platform
-
-try:
-    # should be available in the base install; otherwise we may need "# conda/pip install packaging"
-    from packaging import version
-except ImportError:
-    raise RuntimeError("need to install module 'packaging'; e.g. 'conda/pip install packaging'")
 
 prepy3_10 = version.parse(pbld.pythonver) < version.parse("3.10")
 if platform.machine() != 'arm64' and prepy3_10 and pbld.with_pyme_depends:

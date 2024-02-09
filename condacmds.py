@@ -218,12 +218,6 @@ class PymeBuild(object):
 
         self.use_git = use_git
 
-        if self.use_git:
-            try:
-                import git
-            except ImportError:
-                raise RuntimeError("requesting git install but git (from GitPython) could not be imported; check if in correct environment (base) and if GitPython is installed")
-
         if start_log:
             # set up logging to file
             logging.basicConfig(

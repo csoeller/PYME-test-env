@@ -1,0 +1,14 @@
+"CSC-00706":
+    comment: a Sona entry that should ultimately cover our new camera
+    model: Andor Sona
+    noise_properties:
+        12-bit (low noise):
+            ADOffset: 100
+            ElectronsPerCount: 0.43
+            ReadNoise: 1.1
+            SaturationThreshold: 1640.27
+        16-bit (high dynamic range):
+            ADOffset: 100
+            ElectronsPerCount: 1.0
+            ReadNoise: 1.57
+            SaturationThreshold: 41297.98

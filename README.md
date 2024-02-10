@@ -18,7 +18,8 @@ We make extensive use of retrieving package dependencies from the `conda-forge` 
 	python remove-test-environment.py --python=3.10
 	
 	# test with recent python and forked branch to fix compatibility issues
-	python mk_pyme_env.py --python=3.10 --pyme-repo 'csoeller/python-microscopy' \
+	# note double quotes in arguments for windows, single quotes cause issues!
+	python mk_pyme_env.py --python=3.10 --pyme-repo "csoeller/python-microscopy" \
 	     --pyme-branch python-310-compat
 
     # build production environment with py 3.7 for extended texting on windows
@@ -32,7 +33,7 @@ A brief high level overview of the approach is provided in this section. Detaile
 
 Using just a basic miniconda/minforge install (we use `conda` or `mamba` for most of the actual work under the hood) and this small repository + a working C compiler we build test installations of `PYME` and the plugin selection from `PYME-extra`. Most of the work is done by a script `mk_pyme_env.py` that attempts to build the new environment and accepts a few switches/options to control which versions of python are used etc.
 
-We download a copy of the latest `PYME` and `PYME-extra` directly from github as part of the installation process, by default using the main branch.
+We download a copy of the latest `PYME` and `PYME-extra` directly from github as part of the installation process, by default using the main branch. This can be changed with options to select specific branches. One can also request a full clone of the relevant repos using the `--use-git` option, see also below.
 
 While originally intended to quickly whip up test installations these can also be turned into a production environment. In that case it is useful to name the environment explictly using a more descriptive name. On windows we provide a few launcher scripts that just need setting up of a couple of user level environment variables. With that an environment built via the scripts provided here can be set up for production work on a given machine. Details how to set this up are provided in a section below.
 
@@ -69,16 +70,20 @@ Once in the directory, you can try to run the script to build the environment. I
 which should print the usage info, currently showing something like:
 
 ```
+python mk_pyme_env.py -h
 usage: mk_pyme_env.py [-h] [--python PYTHON] [--buildstem BUILDSTEM]
-                      [-c {conda,mamba}] [-e ENVIRONMENT] [--recipes]
-                      [--pyme-repo PYME_REPO] [--pyme-branch PYME_BRANCH]
-                      [--pymex-repo PYMEX_REPO] [--pymex-branch PYMEX_BRANCH]
+                      [--suffix SUFFIX] [-c {conda,mamba}] [-e ENVIRONMENT]
+                      [--recipes] [--pyme-repo PYME_REPO]
+                      [--pyme-branch PYME_BRANCH] [--pymex-repo PYMEX_REPO]
+                      [--pymex-branch PYMEX_BRANCH] [--no-pymex]
+                      [--no-pyme-depends] [--use-git]
 
-options:
+optional arguments:
   -h, --help            show this help message and exit
   --python PYTHON       specify the python version for the new environment
   --buildstem BUILDSTEM
                         stem for the name of the build directory
+  --suffix SUFFIX       suffix appended to default environment and build_dir
   -c {conda,mamba}, --condacmd {conda,mamba}
                         conda command, should be one of conda or mamba
   -e ENVIRONMENT, --environment ENVIRONMENT
@@ -97,6 +102,11 @@ options:
   --pymex-branch PYMEX_BRANCH
                         branch of PYME-extra to use in build; defaults to
                         master
+  --no-pymex            omit downloading and installing PYME-extra
+  --no-pyme-depends     install from package list rather than using pyme-
+                        depends
+  --use-git             clone git repo locally rather than just downloading
+                        snapshot
 ```
 
 Basic usage to build an environment might look like
@@ -120,6 +130,14 @@ which should build an environment named `pyme-py-3.7-v1` and install the include
 
 The build process will generate a log file in the build directory which can be inspected for errors if some part of the build appears to have failed.
 
+#### Possible conda issues
+
+NOTE: sometimes issues that show up as failed conda commands can result from outdated conda versions. This can be fixed from the base environment with a command like:
+
+	conda update -n base conda
+	
+See also [How to use "conda update -n base conda" properly](https://stackoverflow.com/questions/70365296/how-to-use-conda-update-n-base-conda-properly).
+
 #### Using the new environment
 
 If everything works ok, you can activate the new environment, e.g. something like (adapt to the name of environment your command created):
@@ -129,6 +147,39 @@ If everything works ok, you can activate the new environment, e.g. something lik
 and try some of the usual pyme commands.
 
 For windows users, one can make this more simple by using the launchers we have included (for `visgui`, `dh5view` and `PYMEClusterOfOne`). For these to work one needs to set up a couple of environment variables so that conda/mamba are found and the correct environment is activated to execute the pyme apps from (see below).
+
+#### Use git to clone repo (useful to work on code in test environment)
+
+Docs on `--use-git` option.
+
+   - requirement for GitPython in base environment
+   - git executable (on windows see [git download](https://git-scm.com/download/win) and [git for windows](https://gitforwindows.org/))
+   - example use
+   - why would you use it
+
+#### Use alternative repo sources or branches
+
+Docs on the following options:
+
+```
+ --pyme-repo PYME_REPO
+                        github repository name of python-microscopy; defaults
+                        to python-microscopy/python-microscopy
+  --pyme-branch PYME_BRANCH
+                        branch of pyme to use in build; defaults to master
+  --pymex-repo PYMEX_REPO
+                        github repository name of PYME-extra; defaults to
+                        csoeller/PYME-extra
+  --pymex-branch PYMEX_BRANCH
+                        branch of PYME-extra to use in build; defaults to
+                        master
+```
+
+Sometimes it is useful to specify a fork of the repo in question and/or select a specific branch to checkout (e.g. with specific fixes). This is readily achieved with the options shown above.
+
+#### Using the `--suffix` option
+
+Docs on `--suffix SUFFIX` option.
 
 ### Set environment variables for windows
 

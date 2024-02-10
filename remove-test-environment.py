@@ -21,7 +21,7 @@ pbld = cmds.PymeBuild(pythonver=args.python,
                       condacmd=args.condacmd,
                       environment=args.environment,
                       mk_build_dir=False,
-                      start_log=False,X
+                      start_log=False,
                       suffix=args.suffix
                       )
 

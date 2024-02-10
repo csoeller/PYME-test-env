@@ -191,16 +191,22 @@ class PymeBuild(object):
                  with_recipes=False,
                  pyme_repo=None, pyme_branch=None,
                  pymex_repo=None, pymex_branch=None,
-                 use_git=False):
+                 use_git=False, postfix=None):
+        self.postfix = postfix
         self.pythonver = pythonver
-        self.build_dir = pathlib.Path(build_dir +
-                                      "-py%s-%s" % (pythonver,condacmd))
+        if self.postfix is None:
+            pfix = ''
+        else:
+            pfix = self.postfix
+        build_dir_name = build_dir + "-py%s-%s" % (pythonver,condacmd) + pfix
+        self.build_dir = pathlib.Path(build_dir_name)
         if mk_build_dir:
             self.build_dir.mkdir(exist_ok=True)
         self.condacmd = condacmd
         set_condacmd(self.condacmd)
         if environment is None:
             self.env = 'test-pyme-%s-%s' % (self.pythonver,self.condacmd)
+            self.env = self.env + pfix
         else:
             self.env = environment
         self.with_pyme_depends = with_pyme_depends
@@ -244,4 +250,4 @@ class PymeBuild(object):
         pyme_repo={self.pyme_repo}, pyme_branch={self.pyme_branch},
         pymex_repo={self.pymex_repo}, pymex_branch={self.pymex_branch},
         with_recipes={self.with_recipes}, logging={self.logging}, logfile={self.logfile}
-        use_git={self.use_git}""")
+        use_git={self.use_git}, postfix={self.postfix}""")

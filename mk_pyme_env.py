@@ -103,8 +103,8 @@ parser.add_argument('--python',default='3.9',
                     help='specify the python version for the new environment')
 parser.add_argument('--buildstem',default='build-test',
                     help='stem for the name of the build directory')
-parser.add_argument('--postfix',default=None,
-                    help='postfix appended to default environment and build_dir')
+parser.add_argument('--suffix',default=None,
+                    help='suffix appended to default environment and build_dir')
 parser.add_argument('-c','--condacmd',default='conda',choices=['conda','mamba'],
                     help='conda command, should be one of conda or mamba')
 parser.add_argument('-e','--environment',default=None,
@@ -156,7 +156,7 @@ pbld = cmds.PymeBuild(pythonver=args.python,
                       with_recipes=args.recipes,
                       pyme_repo=args.pyme_repo, pyme_branch=args.pyme_branch,
                       pymex_repo=args.pymex_repo, pymex_branch=args.pymex_branch,
-                      use_git=args.use_git,postfix=args.postfix
+                      use_git=args.use_git,suffix=args.suffix
                       )
 
 environment = pbld.env

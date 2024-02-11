@@ -9,24 +9,24 @@ We make extensive use of retrieving package dependencies from the `conda-forge` 
 ## Synopsis
 
 ```shell
-	# install a test environment with python 3.9 using mamba for package resolution
-	python mk_pyme_env.py --python 3.9 -c mamba
+# install a test environment with python 3.9 using mamba for package resolution
+python mk_pyme_env.py --python 3.9 -c mamba
 	
-	# broadly similar but explictly name the created environment
-	python mk_pyme_env.py --python=3.7 -c mamba --environment pyme-py37-v1
+# broadly similar but explictly name the created environment
+python mk_pyme_env.py --python=3.7 -c mamba --environment pyme-py37-v1
 	
-	# remove a test environment previously installed with a 3.10 python
-	python remove-test-environment.py --python=3.10
+# remove a test environment previously installed with a 3.10 python
+python remove-test-environment.py --python=3.10
 	
-	# test with recent python and forked branch to fix compatibility issues
-	# note double quotes in arguments for windows, single quotes cause issues!
-	python mk_pyme_env.py --python=3.10 --pyme-repo "csoeller/python-microscopy" \
-	     --pyme-branch python-310-compat
+# test with recent python and forked branch to fix compatibility issues
+# note double quotes in arguments for windows, single quotes cause issues!
+python mk_pyme_env.py --python=3.10 --pyme-repo "csoeller/python-microscopy" \
+    --pyme-branch python-310-compat
 
-    # build production environment with py 3.7 for extended texting on windows
-    cd \path\to\PYME-test-env # replace with your directory location
-    python mk_pyme_env.py --python=3.7 -c mamba --environment pyme-py37-v1 --recipes
-    # now set PYMEENV to pyme-py37-v1 and CONDAPATH to path to conda binaries - details below
+# build production environment with py 3.7 for extended texting on windows
+cd \path\to\PYME-test-env # replace with your directory location
+python mk_pyme_env.py --python=3.7 -c mamba --environment pyme-py37-v1 --recipes
+# now set PYMEENV to pyme-py37-v1 and CONDAPATH to path to conda binaries - details below
 ```
     
 ## General approach

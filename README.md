@@ -8,6 +8,7 @@ We make extensive use of retrieving package dependencies from the `conda-forge` 
 
 ## Synopsis
 
+```shell
 	# install a test environment with python 3.9 using mamba for package resolution
 	python mk_pyme_env.py --python 3.9 -c mamba
 	
@@ -25,7 +26,8 @@ We make extensive use of retrieving package dependencies from the `conda-forge` 
     # build production environment with py 3.7 for extended texting on windows
     cd \path\to\PYME-test-env # replace with your directory location
     python mk_pyme_env.py --python=3.7 -c mamba --environment pyme-py37-v1 --recipes
-    # now set PYMENV to pyme-py37-v1 and CONDAPATH to path to conda binaries - details below
+    # now set PYMEENV to pyme-py37-v1 and CONDAPATH to path to conda binaries - details below
+```
     
 ## General approach
 
@@ -56,6 +58,8 @@ We then just need a copy of this repo (`PYME-test-env`) unpacked into a director
 Finally, we need a working compiler tool set. On windows we have instructions how to get that in this [document](https://github.com/csoeller/pyme-install-docs/blob/master/Installing-a-compiler-on-windows.md). On macs you can follow [this description](https://mac.install.guide/commandlinetools/4.html) on how to get just the xcode command line tools on your system. 
 
 ### Building the environment
+
+**IMPORTANT**: Make sure you are in the **base environment** when running any of the install commands below - typicall indicated by the `(base)` prefix in your command window. Plenty of times I got errors and then realised I had already activated another environment which made the install fall over. *Note to self - can we check this from within the script?*
 
 You first need to open a command window. On windows you need to start a "miniforge prompt" or "anaconda prompt", found somewhere in your start menu, sometimes in a submenu titled "miniconda" or similar depending if you used a miniforge or miniconda install.
 
@@ -150,12 +154,17 @@ For windows users, one can make this more simple by using the launchers we have 
 
 #### Use git to clone repo (useful to work on code in test environment)
 
-Docs on `--use-git` option.
+When providing the `--use-git` option, PYME and PYME-extra will be cloned from github (rather than just downloading the head of the chocen branches). This can be useful if you are looking at a more longterm installation and/or might want to edit code in PYME/PYME-extra in that test environment.
 
-   - requirement for GitPython in base environment
-   - git executable (on windows see [git download](https://git-scm.com/download/win) and [git for windows](https://gitforwindows.org/))
-   - example use
-   - why would you use it
+There are a few smallish caveats to use this option.
+
+1. The `GitPython` package needs to be installed in the base environment. The script tests if GitPython can be loaded and if not makes suggestions how to install it.
+2. `GitPython` in turn requires a git executable in the path to actually run the required git commands under the hood.
+3. On the mac there are various ways to obtain git, e.g. from the `macports` or `homebrew` packaging systems. On windows I have successfully used [git for windows](https://gitforwindows.org/), see also [git download](https://git-scm.com/download/win).
+
+Example usage:
+
+      python mk_pyme_env.py --python=3.10 --pyme-repo "csoeller/python-microscopy" --pyme-branch python-310-compat --use-git
 
 #### Use alternative repo sources or branches
 
@@ -179,7 +188,11 @@ Sometimes it is useful to specify a fork of the repo in question and/or select a
 
 #### Using the `--suffix` option
 
-Docs on `--suffix SUFFIX` option.
+One can use the `--suffix SUFFIX` option, which will append the given `SUFFIX` to the generated environment and build directory names. This is useful if you already have a test environment for a given python version but want to build a second one to try some other aspect. Here is an example:
+
+     python mk_pyme_env.py --python=3.10 --suffix="_1" [further options...]
+
+This can be handy as you don't need to supply new environment names and build dir in some complex fashion.
 
 ### Set environment variables for windows
 

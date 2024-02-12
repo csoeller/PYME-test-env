@@ -23,9 +23,9 @@ python remove-test-environment.py --python=3.10
 python mk_pyme_env.py --python=3.10 --pyme-repo "csoeller/python-microscopy" \
     --pyme-branch python-310-compat
 
-# build production environment with py 3.7 for extended texting on windows
+# build production environment with py 3.7 for extended testing on windows
 cd \path\to\PYME-test-env # replace with your directory location
-python mk_pyme_env.py --python=3.7 -c mamba --environment pyme-py37-v1 --recipes
+python mk_pyme_env.py --python=3.7 -c mamba --environment pyme-py37-v1 --recipes # we also install some default recipes
 # now set PYMEENV to pyme-py37-v1 and CONDAPATH to path to conda binaries - details below
 ```
     
@@ -60,6 +60,16 @@ Finally, we need a working compiler tool set. On windows we have instructions ho
 ### Building the environment
 
 **IMPORTANT**: Make sure you are in the **base environment** when running any of the install commands below - typicall indicated by the `(base)` prefix in your command window. Plenty of times I got errors and then realised I had already activated another environment which made the install fall over. *Note to self - can we check this from within the script?*
+
+**NOTE - Possible conda issues**: sometimes issues that show up as failed conda commands can result from outdated conda versions. This can be fixed from the base environment with a command like:
+
+	conda update -n base conda
+	
+See also [How to use "conda update -n base conda" properly](https://stackoverflow.com/questions/70365296/how-to-use-conda-update-n-base-conda-properly).
+
+**NOTE: Log file**: The build process will generate a log file in the build directory which can be inspected for errors if some part of the build appears to have failed. Please inspect the log file if you run into errors.
+
+#### Basic Usage
 
 You first need to open a command window. On windows you need to start a "miniforge prompt" or "anaconda prompt", found somewhere in your start menu, sometimes in a submenu titled "miniconda" or similar depending if you used a miniforge or miniconda install.
 
@@ -129,18 +139,6 @@ If you want a setup for production use you might use (adapt the python version t
 	python mk_pyme_env.py --python 3.7 -c mamba -e pyme-py-3.7-v1 --recipes
 
 which should build an environment named `pyme-py-3.7-v1` and install the included custom recipes for MINFLUX processing so that they can be selected from the MINFLUX menu of `PYMEVisualize` (AKA `visgui`).
-
-#### Log file
-
-The build process will generate a log file in the build directory which can be inspected for errors if some part of the build appears to have failed.
-
-#### Possible conda issues
-
-NOTE: sometimes issues that show up as failed conda commands can result from outdated conda versions. This can be fixed from the base environment with a command like:
-
-	conda update -n base conda
-	
-See also [How to use "conda update -n base conda" properly](https://stackoverflow.com/questions/70365296/how-to-use-conda-update-n-base-conda-properly).
 
 #### Using the new environment
 

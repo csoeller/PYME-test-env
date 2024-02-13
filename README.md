@@ -69,6 +69,8 @@ See also [How to use "conda update -n base conda" properly](https://stackoverflo
 
 **NOTE: Log file**: The build process will generate a log file in the build directory which can be inspected for errors if some part of the build appears to have failed. Please inspect the log file if you run into errors.
 
+**NOTE: winodws path length issues**: The paths in the subdirectories in the PYME package can become very long when everything is built (long string of subdirectories) and I have already hit some windows path length restrictions. The workaround is to clone the PYME-test-env repo into a short named folder near the top level, e.g. `C:\pte` and then cd into that directory and do everything from there. Windows is really silly at times...
+
 #### Basic Usage
 
 You first need to open a command window. On windows you need to start a "miniforge prompt" or "anaconda prompt", found somewhere in your start menu, sometimes in a submenu titled "miniconda" or similar depending if you used a miniforge or miniconda install.

@@ -145,6 +145,9 @@ parser.add_argument('--use-git',action="store_true",
 
 args = parser.parse_args()
 
+cmds.check_condaenv('base') # check we are running in the base environment
+
+
 # # this makes methods/attributes for the standard parameters available
 # # also does any setup stuff, e.g. create build_dir, setup logging etc
 pbld = cmds.PymeBuild(pythonver=args.python,

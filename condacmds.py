@@ -124,6 +124,21 @@ def run_cmd_in_environment(cmd, environment,**kwargs): # kwargs are passed to su
     proc = run(compoundcmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, **kwargs)
     return proc.stdout
 
+def check_condaenv(target_env):
+    import os
+    env = os.getenv("CONDA_DEFAULT_ENV")
+    if env is None:
+        import warnings
+        warnings.warn("Cannot determine conda environment, giving up...")
+        warnings.warn("Check manually that you are running in the base environment")
+        return
+    else:
+        if env == target_env:
+            logger.info("running in %s environment" % env)
+            return
+        else:
+            raise RuntimeError("needs to run in base environment, however %s environment is activated, please check" % env)
+
 def pip_install(environment, packages):
     args = ['python', '-m', 'pip', 'install'] + list(packages)
     return run_cmd_in_environment(' '.join(args),environment)

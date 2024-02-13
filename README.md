@@ -154,7 +154,11 @@ For windows users, one can make this more simple by using the launchers we have 
 
 #### Use git to clone repo (useful to work on code in test environment)
 
-When providing the `--use-git` option, PYME and PYME-extra will be cloned from github (rather than just downloading the head of the chocen branches). This can be useful if you are looking at a more longterm installation and/or might want to edit code in PYME/PYME-extra in that test environment.
+When providing the `--use-git` option, PYME and PYME-extra will be cloned from github (rather than just downloading the head of the chocen branches). This is useful in several scenarios:
+
+1. if you are looking at a more longterm installation and want to update regularly as PYME/PYME-extra get new commits
+2. you might want to edit code in PYME/PYME-extra in that test environment and submit commits from those edits, e.g.
+when working on compatibility with a more recent module version
 
 There are a few smallish caveats to use this option.
 

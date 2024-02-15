@@ -125,6 +125,13 @@ parser.add_argument('--no-pyme-depends',action="store_true",
                     help='install from package list rather than using pyme-depends')
 parser.add_argument('--use-git',action="store_true",
                     help='clone git repo locally rather than just downloading snapshot')
+parser.add_argument('--no-strict-channel',action="store_true",
+                    help='enforce strict adherance to conda-forge channel')
+parser.add_argument('--dry-run',action="store_true",
+                    help='just process options but do not run any commands')
+parser.add_argument('-x','--xtra-packages', action="extend", nargs="+", type=str,
+                    help='extra packages to install into the new environment')
+
 
 
 ### Note
@@ -159,17 +166,21 @@ pbld = cmds.PymeBuild(pythonver=args.python,
                       with_recipes=args.recipes,
                       pyme_repo=args.pyme_repo, pyme_branch=args.pyme_branch,
                       pymex_repo=args.pymex_repo, pymex_branch=args.pymex_branch,
-                      use_git=args.use_git,suffix=args.suffix
+                      use_git=args.use_git,suffix=args.suffix,
+                      strict_conda_forge_channel=not args.no_strict_channel,
+                      dry_run=args.dry_run,xtra_packages=args.xtra_packages,
                       )
 
 environment = pbld.env
 build_dir = pbld.build_dir
 
-envs = cmds.conda_envs()
-
 logging.info("Command called as\n")
 logging.info(commandline + "\n")
 
+if args.dry_run:
+    logging.info("dry run, aborting...")
+    import sys
+    sys.exit(0)
 
 
 # some checks if some of the required packages are available
@@ -184,14 +195,19 @@ if pbld.use_git:
     try:
         import git
     except ImportError:
-        raise RuntimeError("requesting git install but git (from GitPython) could not be imported; check if in correct environment (base) and if GitPython is installed")
+        raise RuntimeError("requesting git install but git (from GitPython) could not be imported; check if GitPython is installed (including git executable)")
 
 
 # 1. make test environment
-
+envs = cmds.conda_envs()
 if environment not in envs:
     cc = cmds.conda_create(environment, pbld.pythonver, channels=['conda-forge'])
     logging.info(cc)
+    if pbld.strict_conda_forge_channel:
+        cc = cmds.run_cmd_in_environment('conda config --env --set channel_priority strict',environment,check=True)
+        logging.info(cc)
+        cc = cmds.run_cmd_in_environment('conda config --env --add channels conda-forge',environment,check=True)
+        logging.info(cc)
 else:
     print('environment %s already exists' % environment)
     answer = input("Continue?")
@@ -284,4 +300,7 @@ if pbld.with_recipes:
     output = cmds.run_cmd_in_environment('python install_config_files.py',environment)
     logging.info(output)
 
+if len(pbld.xtra_packages) > 0:
+    result = cmds.conda_install(environment, pbld.xtra_packages, channels = ['conda-forge'])
+    logging.info(result)
 # potentially here: test for succesfull pyme-extra install

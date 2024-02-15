@@ -131,6 +131,11 @@ def check_condaenv(target_env):
         import warnings
         warnings.warn("Cannot determine conda environment, giving up...")
         warnings.warn("Check manually that you are running in the base environment")
+        answer = input("Are you sure you want to continue?")
+        if answer.lower() not in ["y","yes"]:
+            print("aborting...")
+            import sys
+            sys.exit(0)
         return
     else:
         if env == target_env:
@@ -206,7 +211,9 @@ class PymeBuild(object):
                  with_recipes=False,
                  pyme_repo=None, pyme_branch=None,
                  pymex_repo=None, pymex_branch=None,
-                 use_git=False, suffix=None):
+                 use_git=False, suffix=None,
+                 strict_conda_forge_channel=True, dry_run=False,
+                 xtra_packages=None):
         self.suffix = suffix
         self.pythonver = pythonver
         if self.suffix is None:
@@ -215,8 +222,6 @@ class PymeBuild(object):
             pfix = self.suffix
         build_dir_name = build_dir + "-py%s-%s" % (pythonver,condacmd) + pfix
         self.build_dir = pathlib.Path(build_dir_name)
-        if mk_build_dir:
-            self.build_dir.mkdir(exist_ok=True)
         self.condacmd = condacmd
         set_condacmd(self.condacmd)
         if environment is None:
@@ -239,7 +244,14 @@ class PymeBuild(object):
 
         self.use_git = use_git
 
-        if start_log:
+        self.strict_conda_forge_channel = strict_conda_forge_channel
+        self.dry_run = dry_run
+        self.xtra_packages = xtra_packages
+        
+        if mk_build_dir and not dry_run:
+            self.build_dir.mkdir(exist_ok=True)
+
+        if start_log and not self.dry_run:
             # set up logging to file
             logging.basicConfig(
                 filename=self.logfile,
@@ -256,6 +268,13 @@ class PymeBuild(object):
             logger.info('building PYME...')
             logger.info(self)
 
+        if self.dry_run:
+            logging.basicConfig( # assuming this goes to console without filename argument
+                # encoding='utf-8', # earlier py 3.X has no encoding option yet
+                level=logging.DEBUG
+            )
+            logger.info(self)
+            
     def __str__(self):
         from textwrap import dedent
         return dedent(f"""
@@ -264,5 +283,8 @@ class PymeBuild(object):
         with_pyme_depends={self.with_pyme_depends}, with_pymex={self.with_pymex},
         pyme_repo={self.pyme_repo}, pyme_branch={self.pyme_branch},
         pymex_repo={self.pymex_repo}, pymex_branch={self.pymex_branch},
-        with_recipes={self.with_recipes}, logging={self.logging}, logfile={self.logfile}
-        use_git={self.use_git}, suffix={self.suffix}""")
+        with_recipes={self.with_recipes}, logging={self.logging}, logfile={self.logfile},
+        use_git={self.use_git}, suffix={self.suffix},
+        strict_conda_forge_channel={self.strict_conda_forge_channel}, dry_run={self.dry_run},
+        xtra_packages={self.xtra_packages}
+        """)

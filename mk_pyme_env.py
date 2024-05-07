@@ -75,7 +75,7 @@ Packages = {
                 # next the main other dependecies
                 ('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
                  ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
-                'traits traitsui==7.1.0 pyface==7.1.0'.split(),
+                'traits traitsui pyface'.split(),
                 'pyfftw zeroconf python.app'.split(),
             ],
             'pip': ['wxpython']},
@@ -300,7 +300,7 @@ if pbld.with_recipes:
     output = cmds.run_cmd_in_environment('python install_config_files.py',environment)
     logging.info(output)
 
-if len(pbld.xtra_packages) > 0:
+if not pbld.xtra_packages is None and len(pbld.xtra_packages) > 0:
     result = cmds.conda_install(environment, pbld.xtra_packages, channels = ['conda-forge'])
     logging.info(result)
 # potentially here: test for succesfull pyme-extra install

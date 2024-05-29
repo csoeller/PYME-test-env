@@ -84,7 +84,7 @@ Packages = {
                 'scipy numpy'.split(), # here we should have some suitably fast installation by default but may want to check
                 ('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
                  ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
-                'traits traitsui==7.1.0 pyface==7.1.0'.split(),
+                'traits traitsui pyface'.split(),
                 'pyfftw zeroconf pywin32'.split(),
                 # pyserial?
             ],

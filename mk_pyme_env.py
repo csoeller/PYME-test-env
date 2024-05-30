@@ -76,7 +76,7 @@ Packages = {
                 ('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
                  ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
                 'traits traitsui pyface'.split(),
-                'pyfftw zeroconf python.app'.split(),
+                'pyfftw zeroconf python.app colorcet'.split(),
             ],
             'pip': ['wxpython']},
         'packagelists_win' : {
@@ -85,7 +85,7 @@ Packages = {
                 ('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
                  ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
                 'traits traitsui==7.1.0 pyface==7.1.0'.split(),
-                'pyfftw zeroconf pywin32'.split(),
+                'pyfftw zeroconf pywin32 colorcet'.split(),
                 # pyserial?
             ],
             'pip': ['wxpython']}        

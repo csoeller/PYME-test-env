@@ -4,6 +4,7 @@ from subprocess import run
 import re
 import sys
 import logging
+from pathlib import Path
 
 ####################################
 # conda/mamba/pip handling code
@@ -167,7 +168,7 @@ def unpack_snapshot(snapshot_file,target_dir):
 def repobasename(repo):
     return repo.split('/')[-1]
     
-def download_repo(repo, target_dir,branch='master'):
+def download_repo_snapshot(repo, target_dir,branch='master'):
     import requests
     import pathlib
 
@@ -198,6 +199,54 @@ def repo_install_plugins(repo,environment,branch='master',build_dir="build-test"
     return repo_cmd("python install_plugins.py",repo,environment,
                     branch=branch,build_dir=build_dir)
 
+# used in 'git' mode to clone the full repository locally
+def mk_git_url(repo):
+    from urllib.parse import urljoin
+    return urljoin('https://github.com/', "%s.git" % repo)
+
+def clone_repo(repo,target_dir,branch='master'):
+    import git
+
+    repo = git.Repo.clone_from(mk_git_url(repo), # we need to define this function
+                               target_dir,
+                               branch=branch)
+
+def download_repo_generic(repo,build_dir,branch,mode):
+    if mode == 'snapshot':
+        download_repo_snapshot(repo, build_dir,branch=branch)
+        unpack_snapshot(Path(build_dir) / ("%s.zip" % repobasename(repo)), build_dir)
+    elif mode =='git':
+        target_dir = Path(build_dir) / repo_dirname(repo,branch=branch)
+        clone_repo(repo,target_dir,branch=branch)
+    else:
+        raise RuntimeError("unknown mode '%s'" % mode)    
+
+def build_repo_generic(environment,repo,build_dir,branch):
+    ret = build_repo(repo,environment,build_dir=build_dir,branch=branch)
+    logging.info("building %s..." % repobasename(repo))
+    logging.info(ret)
+
+def repo_install_plugins_generic(environment,build_dir,repo,branch):
+    ret = repo_install_plugins(repo,environment,build_dir=build_dir,branch=branch)
+    logging.info("installing %s plugins..." % repobasename(repo))
+    logging.info(ret)
+    
+def download_pyme_extra(build_dir="build-test",branch='master',repo='csoeller/PYME-extra',mode='snapshot'):
+    download_repo_generic(repo,build_dir,branch,mode)
+    
+def download_pyme(build_dir="build-test",branch='master',repo='python-microscopy/python-microscopy',mode='snapshot'):
+    download_repo_generic(repo,build_dir,branch,mode)
+
+def build_pyme(environment,build_dir="build-test",repo='python-microscopy/python-microscopy',branch='master'):
+    build_repo_generic(environment,repo,build_dir,branch)
+
+def build_pyme_extra(environment,build_dir="build-test",repo='csoeller/PYME-extra',branch='master'):
+    build_repo_generic(environment,repo,build_dir,branch)
+
+def pyme_extra_install_plugins(environment,build_dir="build-test",repo='csoeller/PYME-extra',branch='master'):
+    repo_install_plugins_generic(environment,build_dir,repo,branch)
+
+
 #################################################################
 # PymeBuild class to collect some info and setup code for a build
 #################################################################
@@ -213,7 +262,7 @@ class PymeBuild(object):
                  pymex_repo=None, pymex_branch=None,
                  use_git=False, suffix=None,
                  strict_conda_forge_channel=True, dry_run=False,
-                 xtra_packages=None):
+                 xtra_packages=None, logfile=None):
         self.suffix = suffix
         self.pythonver = pythonver
         if self.suffix is None:
@@ -234,9 +283,13 @@ class PymeBuild(object):
         self.with_recipes = with_recipes
         self.logging = start_log
         if self.logging:
-            self.logfile = self.build_dir / ('build-%s.log' % self.env)
+            if logfile is None:
+                self.logfile = self.build_dir / ('build-%s.log' % self.env)
+            else:
+                self.logfile = self.build_dir / logfile # this should be using the buildstem somehow
         else:
             self.logfile = None
+        
         self.pyme_repo=pyme_repo
         self.pyme_branch=pyme_branch
         self.pymex_repo=pymex_repo

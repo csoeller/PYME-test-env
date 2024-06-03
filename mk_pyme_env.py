@@ -1,53 +1,7 @@
 import condacmds as cmds
+from condacmds import download_pyme_extra, download_pyme, build_pyme_extra, build_pyme, pyme_extra_install_plugins
 from pathlib import Path
 import logging
-
-# eventually we want to allow a mode 'git' to clone the full repository locally
-def mk_git_url(repo):
-    from urllib.parse import urljoin
-    return urljoin('https://github.com/', "%s.git" % repo)
-
-def clone_repo(repo,target_dir,branch='master'):
-    import git
-
-    repo = git.Repo.clone_from(mk_git_url(repo), # we need to define this function
-                               target_dir,
-                               branch=branch)
-
-def download_pyme_extra(build_dir="build-test",branch='master',repo='csoeller/PYME-extra',mode='snapshot'):
-    if mode == 'snapshot':
-        cmds.download_repo(repo, build_dir,branch=branch)
-        cmds.unpack_snapshot(Path(build_dir) / 'PYME-extra.zip', build_dir)
-    elif mode =='git':
-        target_dir = Path(build_dir) / cmds.repo_dirname(repo,branch=branch)
-        clone_repo(repo,target_dir,branch=branch)
-    else:
-        raise RuntimeError("unknown mode '%s'" % mode)
-    
-def download_pyme(build_dir="build-test",branch='master',repo='python-microscopy/python-microscopy',mode='snapshot'):
-    if mode == 'snapshot':
-        cmds.download_repo(repo, build_dir,branch=branch)
-        cmds.unpack_snapshot(Path(build_dir) / 'python-microscopy.zip', build_dir)
-    elif mode =='git':
-        target_dir = Path(build_dir) / cmds.repo_dirname(repo,branch=branch)
-        clone_repo(repo,target_dir,branch=branch)
-    else:
-        raise RuntimeError("unknown mode '%s'" % mode)
-
-def build_pyme(environment,build_dir="build-test",repo='python-microscopy/python-microscopy',branch='master'):
-    ret = cmds.build_repo(repo,environment,build_dir=build_dir,branch=branch)
-    logging.info("building PYME...")
-    logging.info(ret)
-
-def build_pyme_extra(environment,build_dir="build-test",repo='csoeller/PYME-extra',branch='master'):
-    ret = cmds.build_repo(repo,environment,build_dir=build_dir,branch=branch)
-    logging.info("building PYME-extra...")
-    logging.info(ret)
-
-def pyme_extra_install_plugins(environment,build_dir="build-test",repo='csoeller/PYME-extra',branch='master'):
-    ret = cmds.repo_install_plugins(repo,environment,build_dir=build_dir,branch=branch)
-    logging.info("installing PYME-extra plugins...")
-    logging.info(ret)
 
 # first attempt at a central package list
 # not yet used 
@@ -76,7 +30,7 @@ Packages = {
                 ('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
                  ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
                 'traits traitsui pyface'.split(),
-                'pyfftw zeroconf python.app colorcet'.split(),
+                'pyfftw zeroconf python.app'.split(),
             ],
             'pip': ['wxpython']},
         'packagelists_win' : {
@@ -85,7 +39,7 @@ Packages = {
                 ('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
                  ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
                 'traits traitsui pyface'.split(),
-                'pyfftw zeroconf pywin32 colorcet'.split(),
+                'pyfftw zeroconf pywin32'.split(),
                 # pyserial?
             ],
             'pip': ['wxpython']}        
@@ -282,25 +236,27 @@ logging.info("Got PYME version %s" % result)
 # 3. build/install pyme-extra
 if pbld.with_pymex:
     # pyme-extra dependencies
-    packages = 'statsmodels roifile'.split()
+    pymex_conda_packages = 'statsmodels roifile colorcet'.split()
+    # circle-fit is not available in a recent enough version via conda-forge
+    pymex_pip_packages = 'circle-fit'.split()
 
-    result = cmds.conda_install(environment, packages, channels = ['conda-forge'])
+    result = cmds.conda_install(environment, pymex_conda_packages, channels = ['conda-forge'])
     logging.info(result)
 
-    # circle-fit is not available in a recent enough version via conda-forge
-    packages = 'circle-fit'.split()
-    result = cmds.pip_install(environment, packages)
+    result = cmds.pip_install(environment, pymex_pip_packages)
     logging.info(result)
 
     download_pyme_extra(build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch,mode=download_mode)
     build_pyme_extra(environment,build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch)
     pyme_extra_install_plugins(environment,build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch)
 
+# 4. some custom recipes for some ease in a testing environment
 if pbld.with_recipes:
     output = cmds.run_cmd_in_environment('python install_config_files.py',environment)
     logging.info(output)
 
-if not pbld.xtra_packages is None and len(pbld.xtra_packages) > 0:
+# 5. any extra packages although in future this will be preferable via mk_extra_stuff
+if pbld.xtra_packages is not None and len(pbld.xtra_packages) > 0:
     result = cmds.conda_install(environment, pbld.xtra_packages, channels = ['conda-forge'])
     logging.info(result)
 # potentially here: test for succesfull pyme-extra install

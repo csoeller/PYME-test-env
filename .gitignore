@@ -139,3 +139,7 @@ build-test/
 runmamba.py
 
 pyme-install-testing.ipynb
+
+test-notebook-3.10.ipynb
+
+*.zip

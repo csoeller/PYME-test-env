@@ -49,7 +49,7 @@ cmds.check_condaenv('base') # check we are running in the base environment
 extrapackages = {
     'notebooks' : {'conda': 'notebook ipympl nb_conda_kernels'.split()},
     'notebooks-jupyterlab' : {'conda': 'ipympl jupyterlab nb_conda_kernels'.split()},
-    'pymecompress' : {'pip': 'pymecompress'},
+    'pymecompress' : {'pip': ['pymecompress']},
     }
 
 def install_pymenf(ziplocation,build_dir,environment):
@@ -59,21 +59,24 @@ def install_pymenf(ziplocation,build_dir,environment):
     zippath = Path(ziplocation)
     if not zippath.exists():
         raise RuntimeError("cannot find pymenf zip archive '%s', terminating..." % zippath)
-    cmd.unpack_archive(zippath,build_dir)
+    cmds.unpack_snapshot(zippath,build_dir)
 
-    cmd.build_repo_generic(environment,'pymenf',build_dir,branch='master')
-    cmd.repo_install_plugins_generic(environment,build_dir,'pymenf','master')
+    cmds.build_repo_generic(environment,'pymenf',build_dir,branch='master')
+    cmds.repo_install_plugins_generic(environment,build_dir,'pymenf','master')
 
 def install_pyme_siteconfig(build_dir,environment):
     # install the siteconfig repo
     # possibly into a dir outside the otherwise general build dir?
     pass
 
-def install_xtra_packages(environment,packages):
-    for pack in packages:
-        if pack not in extrapackages:
+def check_xtra_packages(pack):
+    if pack not in extrapackages:
             raise RuntimeError("asking to install meta-package %s which is not in the list of known metapackages %s" %
                                (pack, extrapackages.keys()))
+
+def install_xtra_packages(environment,packages):
+    for pack in packages:
+        check_xtra_packages(pack)
         condapacks = extrapackages[pack].get('conda',None)
         if condapacks is not None and condapacks != '' and len(condapacks) != 0:
             result = cmds.conda_install(environment, condapacks, channels = ['conda-forge'])
@@ -121,3 +124,10 @@ if not build_dir.exists():
 envs = cmds.conda_envs()
 if environment not in envs:
     raise RuntimeError("environment '%s' does not exist, terminating..." % environment)
+
+if args.pymenf is not None:
+    install_pymenf(args.pymenf,build_dir,environment)
+
+if args.xtra_sets is not None and len(args.xtra_sets) > 0:
+    # check_xtra_packages(xset)
+    install_xtra_packages(environment,args.xtra_sets)

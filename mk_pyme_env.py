@@ -31,6 +31,7 @@ Packages = {
                  ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
                 'traits traitsui pyface'.split(),
                 'pyfftw zeroconf python.app'.split(),
+                ['pymecompress ujson'], # IO of certain h5's seems to require pymecompress; ujson for ClusterOfOne
             ],
             'pip': ['wxpython']},
         'packagelists_win' : {
@@ -40,6 +41,7 @@ Packages = {
                  ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
                 'traits traitsui pyface'.split(),
                 'pyfftw zeroconf pywin32'.split(),
+                ['pymecompress ujson'], # IO of certain h5's seems to require pymecompress; ujson for ClusterOfOne
                 # pyserial?
             ],
             'pip': ['wxpython']}        
@@ -161,6 +163,8 @@ if environment not in envs:
         cc = cmds.run_cmd_in_environment('conda config --env --set channel_priority strict',environment,check=True)
         logging.info(cc)
         cc = cmds.run_cmd_in_environment('conda config --env --add channels conda-forge',environment,check=True)
+        logging.info(cc)
+        cc = cmds.run_cmd_in_environment('conda config --env --add channels david_baddeley',environment,check=True)
         logging.info(cc)
 else:
     print('environment %s already exists' % environment)

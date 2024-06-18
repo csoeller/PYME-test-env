@@ -49,7 +49,8 @@ cmds.check_condaenv('base') # check we are running in the base environment
 extrapackages = {
     'notebooks' : {'conda': 'notebook ipympl nb_conda_kernels'.split()},
     'notebooks-jupyterlab' : {'conda': 'ipympl jupyterlab nb_conda_kernels'.split()},
-    'pymecompress' : {'pip': ['pymecompress']},
+    # pymecompress is supplied from channel david_baddeley but that should already be in the list of channels
+    'pymecompress' : {'conda': ['pymecompress']}, # pip or source bild on win requires mingW compiler etc
     }
 
 def install_pymenf(ziplocation,build_dir,environment):

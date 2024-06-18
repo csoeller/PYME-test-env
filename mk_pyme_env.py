@@ -31,7 +31,7 @@ Packages = {
                  ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
                 'traits traitsui pyface'.split(),
                 'pyfftw zeroconf python.app'.split(),
-                ['pymecompress ujson'], # IO of certain h5's seems to require pymecompress; ujson for ClusterOfOne
+                ['pymecompress','ujson'], # IO of certain h5's seems to require pymecompress; ujson for ClusterOfOne
             ],
             'pip': ['wxpython']},
         'packagelists_win' : {
@@ -41,7 +41,7 @@ Packages = {
                  ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
                 'traits traitsui pyface'.split(),
                 'pyfftw zeroconf pywin32'.split(),
-                ['pymecompress ujson'], # IO of certain h5's seems to require pymecompress; ujson for ClusterOfOne
+                ['pymecompress','ujson'], # IO of certain h5's seems to require pymecompress; ujson for ClusterOfOne
                 # pyserial?
             ],
             'pip': ['wxpython']}        

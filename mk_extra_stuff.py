@@ -80,7 +80,7 @@ def install_xtra_packages(environment,packages):
         check_xtra_packages(pack)
         condapacks = extrapackages[pack].get('conda',None)
         if condapacks is not None and condapacks != '' and len(condapacks) != 0:
-            result = cmds.conda_install(environment, condapacks, channels = ['conda-forge'])
+            result = cmds.conda_install(environment, condapacks, channels = ['david_baddeley','conda-forge'])
             logging.info(result)
         pippacks = extrapackages[pack].get('pip',None)
         if pippacks is not None and pippacks != '' and len(pippacks) != 0:

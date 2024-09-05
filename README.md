@@ -198,7 +198,7 @@ One can use the `--suffix SUFFIX` option, which will append the given `SUFFIX` t
 
 This can be handy as you don't need to supply new environment names and build dir in some complex fashion.
 
-### Set environment variables for windows
+### Launcher for Windows - Setting environment variables
 
 The launchers are provided in the `launchers` subdirectory. You can use these with the windows `Open with...` dialog, for example, or try to drag files onto these launchers.
 

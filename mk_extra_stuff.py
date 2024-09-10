@@ -105,7 +105,7 @@ pbld = cmds.PymeBuild(pythonver=args.python,
                       use_git=args.use_git,suffix=args.suffix,
                       strict_conda_forge_channel=not args.no_strict_channel,
                       dry_run=args.dry_run,xtra_packages=args.xtra_packages,
-                      mk_build_dir=False,logfile="extra-stuff-%s.log" % args.environment)
+                      mk_build_dir=False,logfile="extra-stuff-$environment$.log")
 
 environment = pbld.env
 build_dir = pbld.build_dir
@@ -132,3 +132,8 @@ if args.pymenf is not None:
 if args.xtra_sets is not None and len(args.xtra_sets) > 0:
     # check_xtra_packages(xset)
     install_xtra_packages(environment,args.xtra_sets)
+
+# 5. any extra packages although in future this will be preferable via mk_extra_stuff
+if pbld.xtra_packages is not None and len(pbld.xtra_packages) > 0:
+    result = cmds.conda_install(environment, pbld.xtra_packages, channels = ['conda-forge'])
+    logging.info(result)

@@ -286,7 +286,7 @@ class PymeBuild(object):
             if logfile is None:
                 self.logfile = self.build_dir / ('build-%s.log' % self.env)
             else:
-                self.logfile = self.build_dir / logfile # this should be using the buildstem somehow
+                self.logfile = self.build_dir / logfile.replace('$environment$',self.env) # this should be using the buildstem somehow
         else:
             self.logfile = None
         

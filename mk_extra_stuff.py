@@ -51,6 +51,8 @@ extrapackages = {
     'notebooks-jupyterlab' : {'conda': 'ipympl jupyterlab nb_conda_kernels'.split()},
     # pymecompress is supplied from channel david_baddeley but that should already be in the list of channels
     'pymecompress' : {'conda': ['pymecompress']}, # pip or source bild on win requires mingW compiler etc
+    'seaborne': {'conda': 'seaborn openpyxl'.split()},
+    'alphashape': {'conda': ['alphashape']},
     }
 
 def install_pymenf(ziplocation,build_dir,environment):

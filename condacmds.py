@@ -74,7 +74,17 @@ def conda_install(environment, packages, channels = None):
         channelspecs += ["--channel", chan]
     cmd = [condacmd, "install", "--quiet", "--yes", "--name", environment] + channelspecs + list(packages)
     logger.info("command arg list is '%s'" % cmd)
-    proc = run(cmd, text=True, capture_output=True)
+    try:
+        proc = run(cmd, text=True, capture_output=True, check=True)
+    except subprocess.CalledProcessError as e:
+        print("PROCERR> Subprocess returned non-zero return code %d" % e.returncode)
+        print("PROCERR> Error when running cmd %s" % e.cmd)
+        if e.stdout is not None:
+            print("Subprocess output:\n", e.stdout)
+        if e.stderr is not None:
+            print("Subprocess error messages:\n", e.stderr)
+        print("PROCERR: Terminating processing, check above for command that caused this error...")
+        sys.exit(1)
     return proc.stdout
 
 def mk_compound_cmd(*cmds):
@@ -147,7 +157,18 @@ def check_condaenv(target_env):
 
 def pip_install(environment, packages):
     args = ['python', '-m', 'pip', 'install'] + list(packages)
-    return run_cmd_in_environment(' '.join(args),environment)
+    try:
+        ret = run_cmd_in_environment(' '.join(args),environment,check=True)
+    except subprocess.CalledProcessError as e:
+        print("PROCERR> Subprocess returned non-zero return code %d" % e.returncode)
+        print("PROCERR> Error when running cmd %s" % e.cmd)
+        if e.stdout is not None:
+            print("Subprocess output:\n", e.stdout)
+        if e.stderr is not None:
+            print("Subprocess error messages:\n", e.stderr)
+        print("PROCERR: Terminating processing, check above for command that caused this error...")
+        sys.exit(1)
+    return ret
 
 #################################
 # github repository handling code

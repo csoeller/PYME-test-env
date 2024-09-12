@@ -27,17 +27,20 @@ Packages = {
                 # conda install "libblas=*=*netlib"
                 'scipy numpy "libblas=*=*accelerate"'.split(),
                 # next the main other dependecies
-                ('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
+                ('$matplotlib$ pytables pyopengl jinja2 cython pip requests pyyaml' +
                  ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
                 'traits traitsui pyface'.split(),
                 'pyfftw zeroconf python.app'.split(),
-                ['pymecompress','ujson'], # IO of certain h5's seems to require pymecompress; ujson for ClusterOfOne
+                ['ujson'], # ujson for ClusterOfOne
+                ['wxpython'],
             ],
-            'pip': ['wxpython']},
+            #'pip': ['wxpython']
+            'pip': ['pymecompress'] # IO of certain h5's seems to require pymecompress; 
+        },
         'packagelists_win' : {
             'conda': [
                 'scipy numpy'.split(), # here we should have some suitably fast installation by default but may want to check
-                ('matplotlib<=3.6 pytables pyopengl jinja2 cython pip requests pyyaml' +
+                ('$matplotlib$ pytables pyopengl jinja2 cython pip requests pyyaml' +
                  ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
                 'traits traitsui pyface'.split(),
                 'pyfftw zeroconf pywin32'.split(),
@@ -192,6 +195,13 @@ logging.info("got python version info: %s" % cc)
 import platform
 
 prepy3_10 = version.parse(pbld.pythonver) < version.parse("3.10")
+postpy3_10 = version.parse(pbld.pythonver) > version.parse("3.10")
+
+if not prepy3_10: # we are now testing if latest PYME can deal with more recent matplotlib
+    matplotlib = 'matplotlib<=3.8'
+else:
+    matplotlib = 'matplotlib<=3.6'
+
 if platform.machine() != 'arm64' and prepy3_10 and pbld.with_pyme_depends:
     packages = Packages['with_pyme_depends']['packages']
     
@@ -206,7 +216,8 @@ else:
         package_sets = Packages['no_pyme_depends']['packagelists_win']['conda']
  
     for packages in package_sets:
-        result = cmds.conda_install(environment, packages, channels = ['conda-forge'])
+        packages_expanded = [pack.replace('$matplotlib$',matplotlib) for pack in packages]
+        result = cmds.conda_install(environment, packages_expanded, channels = ['conda-forge'])
         logging.info(result)
 
     if  platform.system() == 'Darwin': # now selected for all macs
@@ -215,8 +226,9 @@ else:
     else:
         pip_package_set = Packages['no_pyme_depends']['packagelists_win']['pip']
     # now pip install packages that seem to need a pip install (always subject to checks if really required)
-    result = cmds.pip_install(environment, pip_package_set)
-    logging.info(result)
+    if len(pip_package_set)>0:
+        result = cmds.pip_install(environment, pip_package_set)
+        logging.info(result)
 
 ######################################
 # note that we can get a windows error:

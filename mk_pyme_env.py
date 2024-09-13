@@ -46,8 +46,11 @@ Packages = {
                 'pyfftw zeroconf pywin32'.split(),
                 ['pymecompress','ujson'], # IO of certain h5's seems to require pymecompress; ujson for ClusterOfOne
                 # pyserial?
+                ['wxpython'], # let's check if wxpython installs ok from conda-forge
             ],
-            'pip': ['wxpython']}        
+            #'pip': ['wxpython']
+            'pip': []
+        }        
     }
 }
 

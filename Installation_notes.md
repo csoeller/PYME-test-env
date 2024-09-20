@@ -14,6 +14,8 @@ Not sure how the issue is triggered, i.e. is it a consequence of python 3.11? At
 
 python 3.11 builds can currently be fixed by manually applying the patch in [the merged fix](https://github.com/numpy/numpy/pull/27406).
 
+**Additional note**: now python 3.10 builds also fail in this way. Not sure what changed since seemingly numpy versions etc are the same across a couple of 3.10 envs I have. One from a few days agao where everything was fine, today with otherwise apparently identical settings it bombs.
+
 ### numpy 2.x
 
 Numpy 2.X has changed the cython interface for C code. From a quick inspection this needs fixes in a number of PYME type cython files. Not sure how to achieve the fixes yet, when skimming the docs no obvious migration path/example seemed to be discussed. Probably requires more digging.

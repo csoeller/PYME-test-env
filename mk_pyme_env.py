@@ -13,6 +13,7 @@ Packages = {
     'no_pyme_depends' : {
         'packagelists_mac' : {
             'conda' : [
+                ['setuptools<=73'], # setuptools 74.x triggers issue https://github.com/numpy/numpy/issues/27405 on mac
                 # start off with numpy/scipy
                 # the "libblas=*=*accelerate" arguments according to a number of sites, e.g.
                 #   - https://github.com/joblib/threadpoolctl/issues/135

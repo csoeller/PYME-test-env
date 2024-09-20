@@ -2,9 +2,17 @@
 
 Here we record in a loose fashion some observations, issues and possible fixes for PYME installation with `PYME-test-env` as we observe it. Entries should be dated and newest should be at the top.
 
+## 21.9.24
+
+### python 3.X/numpy issues
+
+The issues with installing python 3.x have been traced to a change in `setuptools`. `setuptools>73` on mac (and possibly linux) appear to have stopped packaging a distutils file relating to some of the windows compilers. This exposed an unconditional import from `numpy.distutils` in some of the cython build logic, i.e. the issue described in [this numpy bug report](https://github.com/numpy/numpy/issues/27405).
+
+For now appears to be solvable by pinning `setuptools<=73`.
+
 ## 20.9.24
 
-### python 3.11/numpy issues
+### python 3.X/numpy issues
 
 When installing with python 3.11 current `numpy.distutils` appears to have a regression that hickups running `setup.py` for PYME on mac. The issue is the one referenced in [this numpy bug report](https://github.com/numpy/numpy/issues/27405). It also proposes [a fix](https://github.com/numpy/numpy/pull/27406) that has been merged but not sure in which numpy 1.X version this will still be considered.
 
@@ -15,6 +23,8 @@ Not sure how the issue is triggered, i.e. is it a consequence of python 3.11? At
 python 3.11 builds can currently be fixed by manually applying the patch in [the merged fix](https://github.com/numpy/numpy/pull/27406).
 
 **Additional note**: now python 3.10 builds also fail in this way. Not sure what changed since seemingly numpy versions etc are the same across a couple of 3.10 envs I have. One from a few days agao where everything was fine, today with otherwise apparently identical settings it bombs.
+
+**Update**: see entry from 21.9.24 for proper fix
 
 ### numpy 2.x
 

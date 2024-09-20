@@ -8,7 +8,7 @@ We make extensive use of retrieving package dependencies from the `conda-forge` 
 
 ## Installation notes
 
-PYME builds with PYME-test-env can run into issues with certain arguments (e.g. recent python versions). For recent issues and possible resolutions consult the [installation notes](Installation_notes.md).
+PYME builds with PYME-test-env can run into issues with certain arguments (e.g. recent python versions). For recent issues and possible resolutions consult the [installation notes](Installation_notes.md). Be sure to check these notes when you run into issues!
 
 ## Synopsis
 

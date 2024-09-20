@@ -4,7 +4,11 @@ We provide a small set of scripts and programmatic interfaces to `conda`/`mamba`
 
 There are possibly neater ways to do achieve such installs with suitably crafted conda or pip package builds but we were after a set of tools to install quickly a fully functional conda virtual environment with the latest `PYME` and `PYME-extra` from github and make it easy to switch the python version and some other aspects of the install. This makes building a "test install" pretty easy to check if it works ok, can benefit from a more recent version of python, etc. We have tested the scripts with windows and mac installs (including `arm64`) and the ability to rustle up a new fully functional environment mostly with a single command has already proved quite useful.
 
-We make extensive use of retrieving package dependencies from the `conda-forge` channel and this appears to allow more recent python versions to be used for installation (tested so far up to python 3.9, 3.10 is experimental and needs further pyme patches to be usable). 
+We make extensive use of retrieving package dependencies from the `conda-forge` channel and this appears to allow more recent python versions to be used for installation (tested so far up to python 3.9, 3.10 is experimental and needs further pyme patches to be usable).
+
+## Installation notes
+
+PYME builds with PYME-test-env can run into issues with certain arguments (e.g. recent python versions). For recent issues and possible resolutions consult the [installation notes](Installation_notes.md).
 
 ## Synopsis
 

@@ -22,6 +22,16 @@ logger = logging.getLogger(__name__)
 # while conda seems not to have a dedicated manual discussion of this issue the points and examples
 # given in ws_e_c421's answer make a good case to treat conda (or mamba) just like pip in this regard
 
+def proc_error_msg(e):
+    print("SUBPROCESS_ERR> Subprocess returned non-zero return code %d" % e.returncode)
+    print("SUBPROCESS_ERR> Error during running cmd:\n\t\"%s\"" % e.cmd)
+    if e.stdout is not None:
+        print("SUBPROCESS_ERR> Subprocess output:\n", e.stdout)
+    if e.stderr is not None:
+        print("SUBPROCESS_ERR> Subprocess error messages:\n", e.stderr)
+    print("SUBPROCESS_ERR> Terminating processing, check above for command that caused this error...")
+    sys.exit(1)
+
 def set_condacmd(cmd):
     global condacmd
     condacmd = cmd 
@@ -77,14 +87,7 @@ def conda_install(environment, packages, channels = None):
     try:
         proc = run(cmd, text=True, capture_output=True, check=True)
     except subprocess.CalledProcessError as e:
-        print("PROCERR> Subprocess returned non-zero return code %d" % e.returncode)
-        print("PROCERR> Error when running cmd %s" % e.cmd)
-        if e.stdout is not None:
-            print("Subprocess output:\n", e.stdout)
-        if e.stderr is not None:
-            print("Subprocess error messages:\n", e.stderr)
-        print("PROCERR: Terminating processing, check above for command that caused this error...")
-        sys.exit(1)
+        proc_error_msg(e)
     return proc.stdout
 
 def mk_compound_cmd(*cmds):
@@ -160,14 +163,7 @@ def pip_install(environment, packages):
     try:
         ret = run_cmd_in_environment(' '.join(args),environment,check=True)
     except subprocess.CalledProcessError as e:
-        print("PROCERR> Subprocess returned non-zero return code %d" % e.returncode)
-        print("PROCERR> Error when running cmd %s" % e.cmd)
-        if e.stdout is not None:
-            print("Subprocess output:\n", e.stdout)
-        if e.stderr is not None:
-            print("Subprocess error messages:\n", e.stderr)
-        print("PROCERR: Terminating processing, check above for command that caused this error...")
-        sys.exit(1)
+        proc_error_msg(e)
     return ret
 
 #################################

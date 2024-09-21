@@ -40,9 +40,10 @@ Packages = {
         },
         'packagelists_win' : {
             'conda': [
+                ['"setuptools<=73"'], # setuptools 74.x triggers issue https://github.com/numpy/numpy/issues/27405 on win, too!
                 'scipy numpy'.split(), # here we should have some suitably fast installation by default but may want to check
-                ('$matplotlib$ pytables pyopengl jinja2 cython pip requests pyyaml' +
-                 ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
+                '"$matplotlib$" pytables pyopengl jinja2 cython pip requests pyyaml'.split(),
+                'psutil pandas scikit-image scikit-learn sphinx toposort pybind11'.split(),
                 'traits traitsui pyface'.split(),
                 'pyfftw zeroconf pywin32'.split(),
                 ['pymecompress','ujson'], # IO of certain h5's seems to require pymecompress; ujson for ClusterOfOne

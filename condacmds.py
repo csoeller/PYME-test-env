@@ -45,7 +45,7 @@ def conda_list(environment):
 def conda_envs():
     global condacmd
     proc = run([condacmd, "env", "list"],
-               text=True, capture_output=True)
+               text=True, capture_output=True, shell=True)
     lines = proc.stdout.split("\n")
     entry = re.compile("(\S+)\s+[*]*\s*(\S+)")
     envs = {}
@@ -66,14 +66,14 @@ def conda_create(environment,python='3.7', channels = None):
     channelspecs = []
     for chan in channels:
         channelspecs += ["--channel", chan]
-    cmd = [condacmd, "create", "--quiet", "--json", "-y", "--name", environment] + channelspecs + packages
+    cmd = [condacmd, "create", "--json", "-y", "--name", environment] + channelspecs + packages
     logger.info("command is '%s'" % cmd)
-    proc = run(cmd, text=True, capture_output=True)
+    proc = run(cmd, text=True, capture_output=True,shell=True)
     return proc.stdout
 
 def conda_remove(environment):
     global condacmd
-    proc = run([condacmd, "remove", "-n", environment, "-y", "--all"], text=True, capture_output=True)
+    proc = run([condacmd, "remove", "-n", environment, "-y", "--all"], text=True, capture_output=True,shell=True)
     return proc.stdout
 
 # use channels as needed
@@ -82,10 +82,12 @@ def conda_install(environment, packages, channels = None):
     channelspecs = []
     for chan in channels:
         channelspecs += ["--channel", chan]
-    cmd = [condacmd, "install", "--quiet", "--yes", "--name", environment] + channelspecs + list(packages)
+    cmd = [condacmd, "install", "--yes", "--name", environment] + channelspecs + list(packages)
     logger.info("command arg list is '%s'" % cmd)
+    logger.info("\tcommand expanded '%s'" % ' '.join(cmd))
+    
     try:
-        proc = run(cmd, text=True, capture_output=True, check=True)
+        proc = run(cmd, text=True, capture_output=True, check=True, shell=True)
     except subprocess.CalledProcessError as e:
         proc_error_msg(e)
     return proc.stdout

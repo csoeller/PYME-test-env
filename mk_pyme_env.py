@@ -35,8 +35,8 @@ Packages = {
                 ['ujson'], # ujson for ClusterOfOne
                 ['wxpython'],
             ],
-            #'pip': ['wxpython']
-            'pip': ['pymecompress'] # IO of certain h5's seems to require pymecompress; 
+            #'pip': ['wxpython'] # recently (Sep 24), pip installs of wx on mac seem to be broken; by contrast, conda-forge builds seem ok
+            'pip': ['pymecompress'] # IO of certain h5's seems to require pymecompress; to build with recent python needs pip install
         },
         'packagelists_win' : {
             'conda': [
@@ -213,8 +213,8 @@ if platform.machine() != 'arm64' and prepy3_10 and pbld.with_pyme_depends:
     result = cmds.conda_install(environment, packages, channels = ['conda-forge','david_baddeley'])
     logging.info(result)
 else:
-    # NOTE: mac on arm has no pre-built pyme-depends - we need to install all the required packages "manually" (in a fashion)
-
+    # install required packages from conda-forge and/or via pip
+    # currently we only check for mac and otherwise assume windows; this clearly ignores linux - should be extended when needed
     if  platform.system() == 'Darwin': # now selected for all macs
         package_sets = Packages['no_pyme_depends']['packagelists_mac']['conda']
     else:

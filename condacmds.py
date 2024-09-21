@@ -13,6 +13,11 @@ from pathlib import Path
 condacmd = "conda"
 logger = logging.getLogger(__name__)
 
+if sys.platform == "win32":
+    subproc_kwargs = dict(shell=True)
+else:
+    subproc_kwargs = {}
+
 # general approach taken: we run conda or pip commands in subprocesses
 # there is a decent discussion in this stackoverflow question
 # https://stackoverflow.com/questions/41767340/using-conda-install-within-a-python-script
@@ -45,7 +50,7 @@ def conda_list(environment):
 def conda_envs():
     global condacmd
     proc = run([condacmd, "env", "list"],
-               text=True, capture_output=True, shell=True)
+               text=True, capture_output=True, **subproc_kwargs)
     lines = proc.stdout.split("\n")
     entry = re.compile("(\S+)\s+[*]*\s*(\S+)")
     envs = {}
@@ -68,12 +73,12 @@ def conda_create(environment,python='3.7', channels = None):
         channelspecs += ["--channel", chan]
     cmd = [condacmd, "create", "--json", "-y", "--name", environment] + channelspecs + packages
     logger.info("command is '%s'" % cmd)
-    proc = run(cmd, text=True, capture_output=True,shell=True)
+    proc = run(cmd, text=True, capture_output=True,**subproc_kwargs)
     return proc.stdout
 
 def conda_remove(environment):
     global condacmd
-    proc = run([condacmd, "remove", "-n", environment, "-y", "--all"], text=True, capture_output=True,shell=True)
+    proc = run([condacmd, "remove", "-n", environment, "-y", "--all"], text=True, capture_output=True,**subproc_kwargs)
     return proc.stdout
 
 # use channels as needed
@@ -87,7 +92,7 @@ def conda_install(environment, packages, channels = None):
     logger.info("\tcommand expanded '%s'" % ' '.join(cmd))
     
     try:
-        proc = run(cmd, text=True, capture_output=True, check=True, shell=True)
+        proc = run(cmd, text=True, capture_output=True, check=True, **subproc_kwargs)
     except subprocess.CalledProcessError as e:
         proc_error_msg(e)
     return proc.stdout

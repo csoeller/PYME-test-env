@@ -6,9 +6,13 @@ Here we record in a loose fashion some observations, issues and possible fixes f
 
 ### python 3.X/numpy issues
 
-The issues with installing python 3.x have been traced to a change in `setuptools`. `setuptools>73` on mac (and possibly linux) appear to have stopped packaging a distutils file relating to some of the windows compilers. This exposed an unconditional import from `numpy.distutils` in some of the cython build logic, i.e. the issue described in [this numpy bug report](https://github.com/numpy/numpy/issues/27405).
+The latest issues with installing PYME with python 3.x have been traced to a change in `setuptools`. `setuptools>73` on mac (and possibly linux) appear to have stopped packaging a distutils file relating to some of the windows compilers. This exposed an unconditional import from `numpy.distutils` in some of the cython build logic, i.e. the issue described in [this numpy bug report](https://github.com/numpy/numpy/issues/27405).
 
 For now appears to be solvable by pinning `setuptools<=73`.
+
+#### UPDATE 24.9.24: this is also an issue on windows
+
+We have therefore also pinned `setuptools<=73` on windows for now. Possibly once numpy 1.x with [this fix](https://github.com/numpy/numpy/pull/27406) become available this could be relaxed - but not sure if/when this will happen.
 
 ## 20.9.24
 

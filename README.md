@@ -2,7 +2,9 @@
 
 We provide a small set of scripts and programmatic interfaces to `conda`/`mamba`/`pip` to fully programmatically carry out a custom `pyme` + `pyme-extra` install. Here `pyme` refers to the PYthon Microscopy Environment available at [python-microscopy](https://github.com/python-microscopy/python-microscopy) and the associated `PYME-extra` set of plugins for some extra functionality available via the [PYME-extra](https://github.com/csoeller/PYME-extra) repository. 
 
-There are possibly neater ways to do achieve such installs with suitably crafted conda or pip package builds but we were after a set of tools to install quickly a fully functional conda virtual environment with the latest `PYME` and `PYME-extra` from github and make it easy to switch the python version and some other aspects of the install. This makes building a "test install" pretty easy to check if it works ok, can benefit from a more recent version of python, etc. We have tested the scripts with windows and mac installs (including `arm64`) and the ability to rustle up a new fully functional environment mostly with a single command has already proved quite useful.
+There are possibly neater ways to do such installs with a suitably crafted conda or pip package. For our purposes though we were after a set of tools to install **quickly** and **cheaply** a fully functional conda virtual environment with the latest `PYME` and `PYME-extra` from github. Additionally, it should be easy to switch the python version and some other aspects of the install. This makes building a "test install" pretty easy in one or two commands and then check if it works ok on most aspects PYME, if it does benefit from the more recent version of python, etc.
+
+We have tested the scripts with windows and mac installs (including `arm64`) and the ability to rustle up a new fully functional environment mostly with a single command has already proved quite useful. Linux has not been included as a target as yet (for lack of current need) but it could probably be adapted to linux installs with relatively few changes.
 
 We make extensive use of retrieving package dependencies from the `conda-forge` channel and this appears to allow more recent python versions to be used for installation (tested so far up to python 3.10, 3.11 installs seem to build ok but need more testing, 3.12 installs are not yet possible since they require a replacement of the current PYME build system, see also recent [installation notes](Installation_notes.md)).
 
@@ -13,6 +15,9 @@ PYME builds with PYME-test-env can run into issues with certain arguments (e.g. 
 ## Synopsis
 
 ```shell
+### TODO: here at the top we should add the most recent commands that we frequently
+###       use for a full install on latest well-working python version
+
 # install a test environment with python 3.9 using mamba for package resolution
 python mk_pyme_env.py --python 3.9 -c mamba
 	

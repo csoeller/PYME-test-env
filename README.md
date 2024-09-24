@@ -52,15 +52,23 @@ First thing after building a new environment is to check if all components insta
 
 If everything built ok it is recommended to use the installed PYME tools for a while and carry out a number of the usual visualisation/analysis tasks to see if everything works as intended. Particularly if newer versions of python or some of the associated pre-requisite modules were installed some bugs may become apparent when you use the installation a bit more.
 
-### Requirements before you can start an install
+### Requirements before you can start a PYME test install
 
-To start building test installs we need essentially 3 ingredients on the target machine:
+The scripts need to be run in the directory where you have the `PYME-test-env` dist. They need to be run in a conda `base` enviornment (the scripts will check).
+Most things are conda based as such we need a conda based python installation on the machine. 
+
+This brings us to the list of requirements - to start building test installs we need essentially 3 ingredients (optionally a 4th) on the target machine:
 
    1. a working miniforge/miniconda installation
    2. a working copy of this repo
    3. a working compiler tool set (typically including a C compiler and linker etc)
+   4. optionally, if you want to use git to get a cloned repo (`--use-git` option below), you need a working git install on the machine, see further below
 
 First, we need a working conda/mamba install on that machine. On windows we currently recommend a [miniforge](https://github.com/conda-forge/miniforge) based install. On mac we have so far used a [miniconda](https://docs.conda.io/projects/miniconda/en/latest/) install, but a recent test with miniforge on an intel mac worked fine, too. `mamba` based installs require [miniforge](https://github.com/conda-forge/miniforge) and are recommended because of the much faster dependency resolution, particularly on windows. We describe below how to select between conda and mamba based installs.
+
+We also require `pyyaml` in your `base` environment, which can be added with
+
+    conda install -n base pyyaml
 
 We then just need a copy of this repo (`PYME-test-env`) unpacked into a directory on the target machine. No further installation process is required.
 
@@ -78,7 +86,7 @@ See also [How to use "conda update -n base conda" properly](https://stackoverflo
 
 **NOTE: Log file**: The build process will generate a log file in the build directory which can be inspected for errors if some part of the build appears to have failed. Please inspect the log file if you run into errors.
 
-**NOTE: winodws path length issues**: The paths in the subdirectories in the PYME package can become very long when everything is built (long string of subdirectories) and I have already hit some windows path length restrictions. The workaround is to clone the PYME-test-env repo into a short named folder near the top level, e.g. `C:\pte` and then cd into that directory and do everything from there. Windows is really silly at times...
+**NOTE: windows path length issues**: The paths in the subdirectories in the PYME package can become very long when everything is built (long string of subdirectories) and I have already hit some windows path length restrictions. The workaround is to clone the PYME-test-env repo into a short named folder near the top level, e.g. `C:\pte` and then cd into that directory and do everything from there. Windows is really silly at times...
 
 #### Basic Usage
 

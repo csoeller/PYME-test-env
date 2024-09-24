@@ -5,6 +5,7 @@ import re
 import sys
 import logging
 from pathlib import Path
+import yaml
 
 ####################################
 # conda/mamba/pip handling code
@@ -17,6 +18,29 @@ if sys.platform == "win32":
     subproc_kwargs = dict(shell=True)
 else:
     subproc_kwargs = {}
+
+SETTINGSDIR = Path('.environments')
+
+def check_or_make_settingsdir():
+    SETTINGSDIR.mkdir(exist_ok=True)
+
+def envfile(env):
+    return SETTINGSDIR / ("%s.yaml" % (env))
+    
+def check_env_registered(env):
+    check_or_make_settingsdir()
+    return envfile(env).is_file()
+
+def read_env_settings(env):
+    # check_or_make_settingsdir()
+    with open(envfile(env)) as stream:
+        settings = yaml.safe_load(stream)
+        return settings
+    
+def write_env_settings_yaml(env,data):
+    check_or_make_settingsdir()
+    with envfile(env).open("w") as f:
+       f.write(data)
 
 # general approach taken: we run conda or pip commands in subprocesses
 # there is a decent discussion in this stackoverflow question
@@ -293,10 +317,12 @@ class PymeBuild(object):
             pfix = ''
         else:
             pfix = self.suffix
+        
         build_dir_name = build_dir + "-py%s-%s" % (pythonver,condacmd) + pfix
         self.build_dir = pathlib.Path(build_dir_name)
         self.condacmd = condacmd
         set_condacmd(self.condacmd)
+        
         if environment is None:
             self.env = 'test-pyme-%s-%s' % (self.pythonver,self.condacmd)
             self.env = self.env + pfix
@@ -305,15 +331,7 @@ class PymeBuild(object):
         self.with_pyme_depends = with_pyme_depends
         self.with_pymex = with_pymex
         self.with_recipes = with_recipes
-        self.logging = start_log
-        if self.logging:
-            if logfile is None:
-                self.logfile = self.build_dir / ('build-%s.log' % self.env)
-            else:
-                self.logfile = self.build_dir / logfile.replace('$environment$',self.env) # this should be using the buildstem somehow
-        else:
-            self.logfile = None
-        
+                
         self.pyme_repo=pyme_repo
         self.pyme_branch=pyme_branch
         self.pymex_repo=pymex_repo
@@ -326,9 +344,23 @@ class PymeBuild(object):
         self.xtra_packages = xtra_packages
         
         if mk_build_dir and not dry_run:
-            self.build_dir.mkdir(exist_ok=True)
+            self.build_dir.mkdir(exist_ok=True)            
 
-        if start_log and not self.dry_run:
+        self.logging = start_log
+        self.setup_logging(logfile)
+
+        self.register_environment()
+        
+    def setup_logging(self,logfile=None):
+        if self.logging:
+            if logfile is None:
+                self.logfile = self.build_dir / ('build-%s.log' % self.env)
+            else:
+                self.logfile = self.build_dir / logfile.replace('$environment$',self.env) # this should be using the buildstem somehow
+        else:
+            self.logfile = None
+
+        if self.logging and not self.dry_run:
             # set up logging to file
             logging.basicConfig(
                 filename=self.logfile,
@@ -351,7 +383,39 @@ class PymeBuild(object):
                 level=logging.DEBUG
             )
             logger.info(self)
-            
+
+    # here we want to add saving the config as yaml, check if config already exists, etc
+    def register_environment(self):
+        if check_env_registered(self.env):
+            self._settings = read_env_settings(self.env)
+        else:
+            write_env_settings_yaml(self.env,self.to_yaml())
+
+    def to_yaml(self):
+        import yaml
+        settings = {}
+        attr_names=[a for a in dir(self) if not a.startswith('_') and not callable(getattr(self, a))]
+        for a in attr_names:
+            attr = getattr(self,a)
+            if isinstance(attr,Path):
+                settings[a] = attr.as_posix()
+            else:
+                settings[a] = attr
+        return yaml.dump(settings)
+
+    @classmethod
+    def from_yaml(cls,data):
+        obj = cls.__new__(cls)  # Does not call __init__
+        settings = yaml.safe_load(data)
+        super(PymeBuild, obj).__init__()
+        for a in settings:
+            if a == 'build_dir':
+                setattr(obj,a,Path(settings[a]))
+            else:
+                setattr(obj,a,settings[a])
+        obj._settings = settings
+        return obj
+    
     def __str__(self):
         from textwrap import dedent
         return dedent(f"""

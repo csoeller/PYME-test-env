@@ -3,8 +3,7 @@ from condacmds import download_pyme_extra, download_pyme, build_pyme_extra, buil
 from pathlib import Path
 import logging
 
-# first attempt at a central package list
-# not yet used 
+# central package list
 Packages = {
     'with_pyme_depends' : {
         # the initial matplotlib pinning should ensure we do not get a too recent version 
@@ -188,15 +187,6 @@ logging.info("got python version info: %s" % cc)
 
 # 2. build/install pyme and dependencies
 
-# pyme-depends
-# current constraints:
-# matplotlib<=3.6: matplotlib 3.7.X onwards backend_wx.cursord dictionaries are removed;
-#                 3.8.X removes error_msg_wx function in backend_wx;
-#                 both are used in PYME/DSView/modules/graphViewPanel.py
-#                 this one needs enforcing both with pyme-depends and full package based installs (as on arm64)
-# traitsui==7.1.0 pyface==7.1.0: what is the issue?
-#                 this one needs enforcing only with full package based installs (as on arm64);
-#                 probably implicitly established via pyme-depends based install
 import platform
 
 prepy3_10 = version.parse(pbld.pythonver) < version.parse("3.10")

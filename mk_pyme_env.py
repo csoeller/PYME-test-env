@@ -116,6 +116,7 @@ parser.add_argument('-x','--xtra-packages', action="extend", nargs="+", type=str
 args = parser.parse_args()
 
 cmds.check_condaenv('base') # check we are running in the base environment
+cmds.check_yaml_installed() # check yaml is available
 
 
 # # this makes methods/attributes for the standard parameters available

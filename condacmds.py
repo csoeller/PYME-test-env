@@ -189,6 +189,12 @@ def check_condaenv(target_env):
         else:
             raise RuntimeError("needs to run in base environment, however %s environment is activated, please check" % env)
 
+def check_yaml_installed():
+    try:
+        import yaml
+    except ImportError:
+        raise RuntimeError("we need pyyaml for saving/loading config info, please install using 'conda install -n base pyyaml'")
+
 def pip_install(environment, packages):
     args = ['python', '-m', 'pip', 'install'] + list(packages)
     try:

@@ -72,22 +72,43 @@ def install_pyme_siteconfig(build_dir,environment):
     # possibly into a dir outside the otherwise general build dir?
     pass
 
+def install_pyme_extra(environment,build_dir,download_mode):
+    from condacmds import download_pyme_extra, build_pyme_extra, pyme_extra_install_plugins
+    # build/install pyme-extra
+    # pyme-extra dependencies
+    pymex_conda_packages = 'statsmodels roifile colorcet alphashape'.split()
+    # circle-fit is not available in a recent enough version via conda-forge
+    pymex_pip_packages = 'circle-fit'.split()
+
+    result = cmds.conda_install(environment, pymex_conda_packages, channels = ['conda-forge'])
+    logging.info(result)
+
+    result = cmds.pip_install(environment, pymex_pip_packages)
+    logging.info(result)
+
+    download_pyme_extra(build_dir=build_dir,mode=download_mode)
+    build_pyme_extra(environment,build_dir=build_dir)
+    pyme_extra_install_plugins(environment,build_dir=build_dir)
+
 def check_xtra_packages(pack):
     if pack not in extrapackages:
             raise RuntimeError("asking to install meta-package %s which is not in the list of known metapackages %s" %
                                (pack, extrapackages.keys()))
 
-def install_xtra_packages(environment,packages):
+def install_xtra_packages(environment,packages,build_dir,download_mode):
     for pack in packages:
-        check_xtra_packages(pack)
-        condapacks = extrapackages[pack].get('conda',None)
-        if condapacks is not None and condapacks != '' and len(condapacks) != 0:
-            result = cmds.conda_install(environment, condapacks, channels = ['david_baddeley','conda-forge'])
-            logging.info(result)
-        pippacks = extrapackages[pack].get('pip',None)
-        if pippacks is not None and pippacks != '' and len(pippacks) != 0:
-            result = cmds.pip_install(environment, pippacks)
-            logging.info(result)
+        if pack == 'PYME-extra':
+            install_pyme_extra(environment,build_dir,download_mode)
+        else:
+            check_xtra_packages(pack)
+            condapacks = extrapackages[pack].get('conda',None)
+            if condapacks is not None and condapacks != '' and len(condapacks) != 0:
+                result = cmds.conda_install(environment, condapacks, channels = ['david_baddeley','conda-forge'])
+                logging.info(result)
+            pippacks = extrapackages[pack].get('pip',None)
+            if pippacks is not None and pippacks != '' and len(pippacks) != 0:
+                result = cmds.pip_install(environment, pippacks)
+                logging.info(result)
 
 conda_flags = '--override-channels -c conda-forge' # this is aimed at sticking to conda-forge and not mix with default channel etc
 
@@ -112,6 +133,12 @@ pbld = cmds.PymeBuild(pythonver=args.python,
 environment = pbld.env
 build_dir = pbld.build_dir
 
+if pbld.use_git:
+    download_mode = 'git'
+else:
+    download_mode = 'snapshot'
+
+
 logging.info("Command called as\n")
 logging.info(commandline + "\n")
 
@@ -133,7 +160,7 @@ if args.pymenf is not None:
 
 if args.xtra_sets is not None and len(args.xtra_sets) > 0:
     # check_xtra_packages(xset)
-    install_xtra_packages(environment,args.xtra_sets)
+    install_xtra_packages(environment,args.xtra_sets,build_dir,download_mode)
 
 # 5. any extra packages although in future this will be preferable via mk_extra_stuff
 if pbld.xtra_packages is not None and len(pbld.xtra_packages) > 0:

@@ -135,6 +135,8 @@ pbld = cmds.PymeBuild(pythonver=args.python,
                       dry_run=args.dry_run,xtra_packages=args.xtra_packages,
                       )
 
+# TODO: here possibly check a _settings attribute for compatibility with the actual PymeBuild attributes
+
 environment = pbld.env
 build_dir = pbld.build_dir
 
@@ -248,7 +250,7 @@ logging.info("Got PYME version %s" % result)
 # 3. build/install pyme-extra
 if pbld.with_pymex:
     # pyme-extra dependencies
-    pymex_conda_packages = 'statsmodels roifile colorcet'.split()
+    pymex_conda_packages = 'statsmodels roifile colorcet alphashape'.split()
     # circle-fit is not available in a recent enough version via conda-forge
     pymex_pip_packages = 'circle-fit'.split()
 

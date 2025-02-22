@@ -250,7 +250,7 @@ logging.info("Got PYME version %s" % result)
 # 3. build/install pyme-extra
 if pbld.with_pymex:
     # pyme-extra dependencies
-    pymex_conda_packages = 'statsmodels roifile colorcet alphashape'.split()
+    pymex_conda_packages = 'statsmodels roifile colorcet alphashape zarr'.split()
     # circle-fit is not available in a recent enough version via conda-forge
     pymex_pip_packages = 'circle-fit'.split()
 

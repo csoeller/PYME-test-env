@@ -39,9 +39,9 @@ Packages = {
         },
         'packagelists_win' : {
             'conda': [
-                ['"setuptools<=73"'], # setuptools 74.x triggers issue https://github.com/numpy/numpy/issues/27405 on win, too!
+                ['setuptools<=73'], # setuptools 74.x triggers issue https://github.com/numpy/numpy/issues/27405 on win, too!
                 'scipy numpy'.split(), # here we should have some suitably fast installation by default but may want to check
-                '"$matplotlib$" pytables pyopengl jinja2 cython pip requests pyyaml'.split(),
+                '$matplotlib$ pytables pyopengl jinja2 cython pip requests pyyaml'.split(),
                 'psutil pandas scikit-image scikit-learn sphinx toposort pybind11'.split(),
                 'traits traitsui pyface'.split(),
                 'pyfftw zeroconf pywin32'.split(),
@@ -166,6 +166,10 @@ if pbld.use_git:
 
 # 1. make test environment
 envs = cmds.conda_envs()
+import json
+logging.info("Found the following envs:")
+logging.info(json.dumps(envs,indent=4))
+
 if environment not in envs:
     cc = cmds.conda_create(environment, pbld.pythonver, channels=['conda-forge'])
     logging.info(cc)

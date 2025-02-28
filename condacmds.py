@@ -14,10 +14,12 @@ import yaml
 condacmd = "conda"
 logger = logging.getLogger(__name__)
 
-if sys.platform == "win32":
-    subproc_kwargs = dict(shell=True)
-else:
-    subproc_kwargs = {}
+# NOTE: double check if we really need 
+def shell_if_win32():
+    if sys.platform == "win32":
+        return dict(shell=True)
+    else:
+        return {}
 
 SETTINGSDIR = Path('.environments')
 
@@ -71,12 +73,11 @@ def conda_list(environment):
                text=True, capture_output=True)
     return json.loads(proc.stdout)
 
-def conda_envs():
-    global condacmd
-    proc = run([condacmd, "env", "list"],
-               text=True, capture_output=True, **subproc_kwargs)
+def conda_envs(condacmd='conda'):
+    proc = run([condacmd, "env", "list"], # note that we by default use conda, mamba has leading whitespace but now regex is fixed...
+               text=True, capture_output=True, **shell_if_win32())
     lines = proc.stdout.split("\n")
-    entry = re.compile("(\S+)\s+[*]*\s*(\S+)")
+    entry = re.compile("\s*(\S+)\s+[*]*\s*(\S+)")
     envs = {}
     for line in lines:
         if line.startswith('#'):
@@ -97,12 +98,12 @@ def conda_create(environment,python='3.7', channels = None):
         channelspecs += ["--channel", chan]
     cmd = [condacmd, "create", "--json", "-y", "--name", environment] + channelspecs + packages
     logger.info("command is '%s'" % cmd)
-    proc = run(cmd, text=True, capture_output=True,**subproc_kwargs)
+    proc = run(cmd, text=True, capture_output=True,**shell_if_win32())
     return proc.stdout
 
 def conda_remove(environment):
     global condacmd
-    proc = run([condacmd, "remove", "-n", environment, "-y", "--all"], text=True, capture_output=True,**subproc_kwargs)
+    proc = run([condacmd, "remove", "-n", environment, "-y", "--all"], text=True, capture_output=True,**shell_if_win32())
     return proc.stdout
 
 # use channels as needed
@@ -116,7 +117,7 @@ def conda_install(environment, packages, channels = None):
     logger.info("\tcommand expanded '%s'" % ' '.join(cmd))
     
     try:
-        proc = run(cmd, text=True, capture_output=True, check=True, **subproc_kwargs)
+        proc = run(cmd, text=True, capture_output=True, check=True)
     except subprocess.CalledProcessError as e:
         proc_error_msg(e)
     return proc.stdout

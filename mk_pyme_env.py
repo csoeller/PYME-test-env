@@ -155,8 +155,14 @@ try:
     # should be available in the base install; otherwise we may need "# conda/pip install packaging"
     from packaging import version
 except ImportError:
-    raise RuntimeError("need to install module 'packaging'; e.g. 'conda/pip install packaging'")
+    raise RuntimeError("need to install module 'packaging' in base environment; e.g. 'conda/pip install packaging'")
 
+try:
+    # should be available in the base install; otherwise we may need "# conda/pip install packaging"
+    import yaml
+except ImportError:
+    raise RuntimeError("need to install module 'pyyaml' in base environment; e.g. 'conda/pip install pyyaml'")
+    
 if pbld.use_git:
     try:
         import git

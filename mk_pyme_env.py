@@ -55,6 +55,15 @@ Packages = {
     }
 }
 
+# PYME-extra dependencies
+# currently zarr<3 since zarr 3.X gives rise to an open error on zipstore zarrs;
+# still need to read the migration guide if that explains things:
+#       https://zarr.readthedocs.io/en/latest/user-guide/v3_migration.html
+Pymex_conda_packages = 'statsmodels roifile colorcet alphashape zarr>=2,<3 seaborn'.split()
+# circle-fit is not available in a recent enough version via conda-forge
+Pymex_pip_packages = 'circle-fit'.split()
+
+
 # 0. some basic setup/parameter choices via command line arguments
 
 import sys
@@ -259,15 +268,12 @@ logging.info("Got PYME version %s" % result)
 
 # 3. build/install pyme-extra
 if pbld.with_pymex:
-    # pyme-extra dependencies
-    pymex_conda_packages = 'statsmodels roifile colorcet alphashape zarr'.split()
-    # circle-fit is not available in a recent enough version via conda-forge
-    pymex_pip_packages = 'circle-fit'.split()
-
-    result = cmds.conda_install(environment, pymex_conda_packages, channels = ['conda-forge'])
+    # pyme-extra dependencies are listed in two variables at the top of the file
+    #    in Pymex_conda_packages and Pymex_pip_packages
+    result = cmds.conda_install(environment, Pymex_conda_packages, channels = ['conda-forge'])
     logging.info(result)
 
-    result = cmds.pip_install(environment, pymex_pip_packages)
+    result = cmds.pip_install(environment, Pymex_pip_packages)
     logging.info(result)
 
     download_pyme_extra(build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch,mode=download_mode)

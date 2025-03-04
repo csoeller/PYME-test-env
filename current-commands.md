@@ -20,7 +20,15 @@ python mk_pyme_env.py --python=3.10 --suffix=_p --use-git --pyme-repo "csoeller/
 
 ## python 3.11
 
-mac
+### win
+
+```
+python mk_pyme_env.py --python=3.11 --suffix=_1 -c mamba --use-git --pyme-repo "csoeller/python-microscopy"  --pyme-branch working-jan-2025
+```
+
+
+### mac
+
 ```
 python mk_pyme_env.py --python=3.11 --suffix=_1 --use-git --pyme-repo "csoeller/python-microscopy"  --pyme-branch working-jan-2025
 ```

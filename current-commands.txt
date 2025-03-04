@@ -1,4 +1,0 @@
-useful command sequences for current installs:
-
-python 3.10:
-python mk_pyme_env.py --python=3.10 --suffix=_p -c mamba --use-git --pyme-repo "csoeller/python-microscopy"  --pyme-branch working-jan-2025

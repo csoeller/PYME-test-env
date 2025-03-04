@@ -167,7 +167,7 @@ if pbld.use_git:
     try:
         import git
     except ImportError:
-        raise RuntimeError("requesting git install but git (from GitPython) could not be imported; check if GitPython is installed (including git executable)")
+        raise RuntimeError("git could not be imported; install gitpython ( e.g. 'conda/pip install gitpython'); on windows ALSO check for git executable)")
 
 
 # 1. make test environment

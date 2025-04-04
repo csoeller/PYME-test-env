@@ -25,7 +25,7 @@ Packages = {
                 # conda install "libblas=*=*blis"
                 # conda install "libblas=*=*accelerate"
                 # conda install "libblas=*=*netlib"
-                'scipy numpy "libblas=*=*accelerate"'.split(),
+                'scipy numpy<2 "libblas=*=*accelerate"'.split(),
                 # next the main other dependecies
                 ('$matplotlib$ pytables pyopengl jinja2 cython pip requests pyyaml' +
                  ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
@@ -40,7 +40,7 @@ Packages = {
         'packagelists_win' : {
             'conda': [
                 ['setuptools<=73'], # setuptools 74.x triggers issue https://github.com/numpy/numpy/issues/27405 on win, too!
-                'scipy numpy'.split(), # here we should have some suitably fast installation by default but may want to check
+                'scipy numpy<2'.split(), # here we should have some suitably fast installation by default but may want to check
                 '$matplotlib$ pytables pyopengl jinja2 cython pip requests pyyaml'.split(),
                 'psutil pandas scikit-image scikit-learn sphinx toposort pybind11'.split(),
                 'traits traitsui pyface'.split(),
@@ -59,6 +59,10 @@ Packages = {
 # currently zarr<3 since zarr 3.X gives rise to an open error on zipstore zarrs;
 # still need to read the migration guide if that explains things:
 #       https://zarr.readthedocs.io/en/latest/user-guide/v3_migration.html
+# there is an issue that mentions just this issue with v3: https://github.com/zarr-developers/zarr-python/issues/2831
+#  "Can't conveniently open zip store from path with zarr v3"
+#  corresponding PR with fix: https://github.com/zarr-developers/zarr-python/pull/2856
+# so will hopefully be addressed in upcoming zarr 3.x update
 Pymex_conda_packages = 'statsmodels roifile colorcet alphashape zarr>=2,<3 seaborn'.split()
 # circle-fit is not available in a recent enough version via conda-forge
 Pymex_pip_packages = 'circle-fit'.split()

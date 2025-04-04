@@ -31,4 +31,6 @@ python mk_pyme_env.py --python=3.11 --suffix=_1 -c mamba --use-git --pyme-repo "
 
 ```
 python mk_pyme_env.py --python=3.11 --suffix=_1 --use-git --pyme-repo "csoeller/python-microscopy"  --pyme-branch working-jan-2025
+python mk_extra_stuff.py --python=3.11 --suffix=_1 --pymenf pymenf-master.zip # complete install on mac with pymenf
+python mk_extra_stuff.py --python=3.11 --suffix=_1 --xtra-sets notebooks # and latest notebook code
 ```

@@ -76,7 +76,7 @@ def install_pyme_extra(environment,build_dir,download_mode):
     from condacmds import download_pyme_extra, build_pyme_extra, pyme_extra_install_plugins
     # build/install pyme-extra
     # pyme-extra dependencies
-    pymex_conda_packages = 'statsmodels roifile colorcet alphashape zarr'.split()
+    pymex_conda_packages = 'statsmodels roifile colorcet alphashape zarr>=2,<3 seaborn'.split()
     # circle-fit is not available in a recent enough version via conda-forge
     pymex_pip_packages = 'circle-fit'.split()
 

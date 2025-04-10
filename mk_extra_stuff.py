@@ -51,7 +51,7 @@ extrapackages = {
     'notebooks-jupyterlab' : {'conda': 'ipympl jupyterlab nb_conda_kernels'.split()},
     # pymecompress is supplied from channel david_baddeley but that should already be in the list of channels
     'pymecompress' : {'conda': ['pymecompress']}, # pip or source bild on win requires mingW compiler etc
-    'seaborne': {'conda': 'seaborn openpyxl'.split()},
+    'seaborn': {'conda': 'seaborn openpyxl'.split()},
     'alphashape': {'conda': ['alphashape']},
     }
 
@@ -76,7 +76,7 @@ def install_pyme_extra(environment,build_dir,download_mode):
     from condacmds import download_pyme_extra, build_pyme_extra, pyme_extra_install_plugins
     # build/install pyme-extra
     # pyme-extra dependencies
-    pymex_conda_packages = 'statsmodels roifile colorcet alphashape zarr>=2,<3 seaborn'.split()
+    pymex_conda_packages = 'statsmodels roifile colorcet alphashape zarr>=2,<3 seaborn openpyxl'.split()
     # circle-fit is not available in a recent enough version via conda-forge
     pymex_pip_packages = 'circle-fit'.split()
 

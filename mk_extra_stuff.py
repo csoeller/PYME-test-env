@@ -76,14 +76,12 @@ def install_pyme_extra(environment,build_dir,download_mode):
     from condacmds import download_pyme_extra, build_pyme_extra, pyme_extra_install_plugins
     # build/install pyme-extra
     # pyme-extra dependencies
-    pymex_conda_packages = 'statsmodels roifile colorcet alphashape zarr>=2,<3 seaborn openpyxl'.split()
-    # circle-fit is not available in a recent enough version via conda-forge
-    pymex_pip_packages = 'circle-fit'.split()
+    from packagesettings import Pymex_conda_packages, Pymex_pip_packages
 
-    result = cmds.conda_install(environment, pymex_conda_packages, channels = ['conda-forge'])
+    result = cmds.conda_install(environment, Pymex_conda_packages, channels = ['conda-forge'])
     logging.info(result)
 
-    result = cmds.pip_install(environment, pymex_pip_packages)
+    result = cmds.pip_install(environment, Pymex_pip_packages)
     logging.info(result)
 
     download_pyme_extra(build_dir=build_dir,mode=download_mode)

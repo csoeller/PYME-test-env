@@ -3,8 +3,9 @@
 General assumptions:
 
 - we build with the git option (`--use-git`), this requires a working git installed, especially on windows. This is explained in the docs.
-- on windows we generally build with `mamba` using the minforge installation, this is also explained in the docs; on win `mamba` is significantly faster than using `conda`
+- on windows we generally build with `mamba` using the miniforge installation, this is also explained in the docs; on win `mamba` is significantly faster than using `conda`
 - the `--suffix` option can generally be set to something convenient to tag the created environment so you know what is was made for etc
+- some commands mention the `pymenf` package/option; this is part of a non-free package and lines mentioning this can be safely ignored by those not having access
 
 ## python 3.10
 

@@ -13,7 +13,7 @@ commandline = " ".join(sys.argv)
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--python',default='3.9',
+parser.add_argument('--python',default='3.10',
                     help='specify the python version for the new environment')
 parser.add_argument('--buildstem',default='build-test',
                     help='stem for the name of the build directory')
@@ -45,6 +45,8 @@ parser.add_argument('--dry-run',action="store_true",
                     help='just process options but do not run any commands')
 parser.add_argument('-x','--xtra-packages', action="extend", nargs="+", type=str,
                     help='extra packages to install into the new environment')
+parser.add_argument('--matplotlib-numpy-latest',action="store_true",
+                    help='attempt to use latest matplolib and numpy')
 
 
 
@@ -156,10 +158,18 @@ import platform
 prepy3_10 = version.parse(pbld.pythonver) < version.parse("3.10")
 postpy3_10 = version.parse(pbld.pythonver) > version.parse("3.10")
 
-if not prepy3_10: # we are now testing if latest PYME can deal with more recent matplotlib
+if args.matplotlib_numpy_latest:
+    matplotlib = 'matplotlib'
+elif not prepy3_10: # we are now testing if latest PYME can deal with more recent matplotlib
     matplotlib = 'matplotlib<=3.8'
 else:
     matplotlib = 'matplotlib<=3.6'
+
+if args.matplotlib_numpy_latest:
+    numpy = 'numpy'
+else:
+    numpy = 'numpy<2'
+
 
 if platform.machine() != 'arm64' and prepy3_10 and pbld.with_pyme_depends:
     packages = Packages['with_pyme_depends']['packages']
@@ -175,7 +185,7 @@ else:
         package_sets = Packages['no_pyme_depends']['packagelists_win']['conda']
  
     for packages in package_sets:
-        packages_expanded = [pack.replace('$matplotlib$',matplotlib) for pack in packages]
+        packages_expanded = [pack.replace('$matplotlib$',matplotlib).replace('$numpy$',numpy) for pack in packages]
         result = cmds.conda_install(environment, packages_expanded, channels = ['conda-forge'])
         logging.info(result)
 

@@ -8,13 +8,15 @@ import logging
 # from a previous pyme env build run
 
 # list of known package sets
+# potentially something about pyarrow (for pandas)
+
 extrapackages = {
     'notebooks' : {'conda': 'notebook ipympl nb_conda_kernels'.split()},
     'notebooks-jupyterlab' : {'conda': 'ipympl jupyterlab nb_conda_kernels'.split()},
     # pymecompress is supplied from channel david_baddeley but that should already be in the list of channels
-    'pymecompress' : {'conda': ['pymecompress']}, # pip or source bild on win requires mingW compiler etc
-    'seaborne': {'conda': 'seaborn openpyxl'.split()},
-    'alphashape': {'conda': ['alphashape']},
+    'pymecompress' : {'conda': ['pymecompress']}, # pip or source build on win requires mingW compiler etc
+    'seaborne': {'conda': 'seaborn openpyxl'.split()}, # for latest PYME-extra; we add openpyxl for excel IO
+    'alphashape': {'conda': ['alphashape']}, # PYME-extra: not absolutely required but potentially useful; convexHull is used as fallback
     }
 
 def install_pymenf(ziplocation,build_dir,environment):

@@ -20,7 +20,7 @@ Packages = {
                 # conda install "libblas=*=*blis"
                 # conda install "libblas=*=*accelerate"
                 # conda install "libblas=*=*netlib"
-                'scipy numpy<2 "libblas=*=*accelerate"'.split(),
+                'scipy $numpy$ "libblas=*=*accelerate"'.split(),
                 # next the main other dependecies
                 ('$matplotlib$ pytables pyopengl jinja2 cython pip requests pyyaml' +
                  ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
@@ -35,7 +35,7 @@ Packages = {
         'packagelists_win' : {
             'conda': [
                 ['setuptools<=73'], # setuptools 74.x triggers issue https://github.com/numpy/numpy/issues/27405 on win, too!
-                'scipy numpy<2'.split(), # here we should have some suitably fast installation by default but may want to check
+                'scipy $numpy$'.split(), # here we should have some suitably fast installation by default but may want to check
                 '$matplotlib$ pytables pyopengl jinja2 cython pip requests pyyaml'.split(),
                 'psutil pandas scikit-image scikit-learn sphinx toposort pybind11'.split(),
                 'traits traitsui pyface'.split(),

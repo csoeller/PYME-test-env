@@ -147,3 +147,5 @@ test-notebook-3.10.ipynb
 tasklist-acquisition-install.txt
 
 .environments/
+
+currently-active-environments.md

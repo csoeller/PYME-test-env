@@ -58,6 +58,7 @@ Packages = {
 #  "Can't conveniently open zip store from path with zarr v3"
 #  corresponding PR with fix: https://github.com/zarr-developers/zarr-python/pull/2856
 # so will hopefully be addressed in upcoming zarr 3.x update
-Pymex_conda_packages = 'statsmodels roifile colorcet alphashape zarr>=2,<3 seaborn openpyxl mrcfile'.split()
+# tabulate is not really a PYME-extra dependency but used sometimes in notebooks etc
+Pymex_conda_packages = 'statsmodels roifile colorcet alphashape zarr>=2,<3 seaborn openpyxl mrcfile tabulate'.split()
 # circle-fit is not available in a recent enough version via conda-forge
 Pymex_pip_packages = 'circle-fit'.split()

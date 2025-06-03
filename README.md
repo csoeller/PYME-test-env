@@ -12,6 +12,8 @@ We make extensive use of retrieving package dependencies from the `conda-forge` 
 
 PYME builds with PYME-test-env can run into issues with certain arguments (e.g. recent python versions). For recent issues and possible resolutions consult the [installation notes](Installation_notes.md). Be sure to check these notes when you run into issues!
 
+To run the scripts included with `PYME-test-env` a few packages are needed, such as `pyyaml` and `requests` plus some other dependencies (such as `conda` and others). Details are covered in the section on _requirements_ below.
+
 ## Synopsis
 
 ```shell
@@ -57,6 +59,7 @@ If everything built ok it is recommended to use the installed PYME tools for a w
 The scripts need to be run in the directory where you have the `PYME-test-env` dist. They need to be run in a conda `base` enviornment (the scripts will check).
 Most things are conda based as such we need a conda based python installation on the machine. 
 
+#### Required tools 
 This brings us to the list of requirements - to start building test installs we need essentially 3 ingredients (optionally a 4th) on the target machine:
 
    1. a working miniforge/miniconda installation
@@ -66,13 +69,19 @@ This brings us to the list of requirements - to start building test installs we 
 
 First, we need a working conda/mamba install on that machine. On windows we currently recommend a [miniforge](https://github.com/conda-forge/miniforge) based install. On mac we have so far used a [miniconda](https://docs.conda.io/projects/miniconda/en/latest/) install, but a recent test with miniforge on an intel mac worked fine, too. `mamba` based installs require [miniforge](https://github.com/conda-forge/miniforge) and are recommended because of the much faster dependency resolution, particularly on windows. We describe below how to select between conda and mamba based installs.
 
+#### Required python packages in the base environment
+
 We also require `pyyaml` in your `base` environment, which can be added with
 
     conda install -n base pyyaml
 
+In addition, the `requests` package is needed but that seems to be included by default as it is probably a dependency for `conda` itself. If you do get an error that the `requests` module cannot be imported please let us know as this would be a first.
+
 We then just need a copy of this repo (`PYME-test-env`) unpacked into a directory on the target machine. No further installation process is required.
 
-Finally, we need a working compiler tool set. On windows we have instructions how to get that in this [document](https://github.com/csoeller/pyme-install-docs/blob/master/Installing-a-compiler-on-windows.md). On macs you can follow [this description](https://mac.install.guide/commandlinetools/4.html) on how to get just the xcode command line tools on your system. 
+#### Compiler tool set
+
+Finally, we need a working compiler tool set. On windows we have instructions how to get that in this [document](https://github.com/csoeller/pyme-install-docs/blob/master/Installing-a-compiler-on-windows.md). On macs you can follow [this description](https://mac.install.guide/commandlinetools/4.html) on how to get the xcode command line tools on your system (if these are not already installed. 
 
 ### Building the environment
 

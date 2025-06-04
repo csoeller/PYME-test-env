@@ -46,7 +46,7 @@ parser.add_argument('--dry-run',action="store_true",
 parser.add_argument('-x','--xtra-packages', action="extend", nargs="+", type=str,
                     help='extra packages to install into the new environment')
 parser.add_argument('--matplotlib-numpy-latest',action="store_true",
-                    help='attempt to use latest matplolib and numpy')
+                    help='instruct conda to use latest matplolib and numpy; currently used for testing of numpy>=2')
 
 
 

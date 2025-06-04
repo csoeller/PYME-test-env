@@ -145,7 +145,8 @@ optional arguments:
   -x XTRA_PACKAGES [XTRA_PACKAGES ...], --xtra-packages XTRA_PACKAGES [XTRA_PACKAGES ...]
                         extra packages to install into the new environment
   --matplotlib-numpy-latest
-                        instruct conda to use latest matplolib and numpy; currently used for testing of numpy>=2```
+                        instruct conda to use latest matplolib and numpy; currently used for testing of numpy>=2
+```
 
 Basic usage to build an environment might look like
 

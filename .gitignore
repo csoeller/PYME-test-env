@@ -6,6 +6,7 @@ b-*-mamba/
 b-*-conda/
 *~
 .DS_Store
+.roadmap*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

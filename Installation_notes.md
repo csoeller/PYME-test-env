@@ -2,6 +2,18 @@
 
 Here we record in a loose fashion some observations, issues and possible fixes for PYME installation with `PYME-test-env` as we observe it. Entries should be dated and newest should be at the top.
 
+## 4.6.25
+
+We keep pinning `setuptools<=73` and this will likely remain until the build
+system of `PYME` (and by extension, `PYME-extra`) has been overhauled to drop `numpy.distutils` dependencies. This is a major job and limits installation
+to `Python<3.12` for now.
+
+Builds with 3.10 and 3.11 should now work out of the box. Consult the file [current-commands.md](current-commands.md) for suggested command sequences.
+
+It is also possibly to build with numpy>=2 with a patch/PR for PYME. Further details are in [current-commands.md](current-commands.md).
+
+
+
 ## 21.9.24
 
 ### python 3.X/numpy issues

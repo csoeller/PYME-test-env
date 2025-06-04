@@ -17,8 +17,9 @@ To run the scripts included with `PYME-test-env` a few packages are needed, such
 ## Synopsis
 
 ```shell
-### TODO: here at the top we should add the most recent commands that we frequently
-###       use for a full install on latest well-working python version
+### we list a few "typical" commands and use cases here
+### for suggested command sequences for an up-to-date install
+### consult the file current-commands.md
 
 # install a test environment with python 3.9 using mamba for package resolution
 python mk_pyme_env.py --python 3.9 -c mamba

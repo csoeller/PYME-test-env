@@ -82,11 +82,11 @@ We then just need a copy of this repo (`PYME-test-env`) unpacked into a director
 
 #### Compiler tool set
 
-Finally, we need a working compiler tool set. On windows we have instructions how to get that in this [document](https://github.com/csoeller/pyme-install-docs/blob/master/Installing-a-compiler-on-windows.md). On macs you can follow [this description](https://mac.install.guide/commandlinetools/4.html) on how to get the xcode command line tools on your system (if these are not already installed. 
+Finally, we need a working compiler tool set. On windows we have instructions how to get that in this [document](https://github.com/csoeller/pyme-install-docs/blob/master/Installing-a-compiler-on-windows.md). On macs you can follow [this description](https://mac.install.guide/commandlinetools/4.html) on how to get the xcode command line tools on your system (if these are not already installed). 
 
 ### Building the environment
 
-**IMPORTANT**: Make sure you are in the **base environment** when running any of the install commands below - typicall indicated by the `(base)` prefix in your command window. Plenty of times I got errors and then realised I had already activated another environment which made the install fall over. *Note to self - can we check this from within the script?*
+**IMPORTANT**: Make sure you are in the **base environment** when running any of the install commands below - typicall indicated by the `(base)` prefix in your command window. Plenty of times I got errors and then realised I had already activated another environment which made the install fall over. *Note: the script now explictly checks if it is called from the base environment and if not prints an error to point out the issue.* In other words, this should now be relatively easy to troubleshoot.
 
 **NOTE - Possible conda issues**: sometimes issues that show up as failed conda commands can result from outdated conda versions. This can be fixed from the base environment with a command like:
 
@@ -167,7 +167,7 @@ which should build an environment named `pyme-py-3.7-v1` and install the include
 
 #### Using the new environment
 
-If everything works ok, you can activate the new environment, e.g. something like (adapt to the name of environment your command created):
+If everything works ok, you can activate the new environment, e.g. something like (on your machine adapt the line below to the name of environment your command created):
 
 	conda activate pyme-py-3.7-v1
 
@@ -177,7 +177,7 @@ For windows users, one can make this more simple by using the launchers we have 
 
 #### Use git to clone repo (useful to work on code in test environment)
 
-When providing the `--use-git` option, PYME and PYME-extra will be cloned from github (rather than just downloading the head of the chocen branches). This is useful in several scenarios:
+When providing the `--use-git` option, PYME and PYME-extra will be cloned from github (rather than just downloading the head of the chosen branches). This is useful in several scenarios:
 
 1. if you are looking at a more longterm installation and want to update regularly as PYME/PYME-extra get new commits
 2. you might want to edit code in PYME/PYME-extra in that test environment and submit commits from those edits, e.g.

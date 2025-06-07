@@ -12,7 +12,7 @@ We make extensive use of retrieving package dependencies from the `conda-forge` 
 
 PYME builds with PYME-test-env can run into issues with certain arguments (e.g. recent python versions). For recent issues and possible resolutions consult the [installation notes](Installation_notes.md). Be sure to check these notes when you run into issues!
 
-To run the scripts included with `PYME-test-env` a few packages are needed, such as `pyyaml` and `requests` plus some other dependencies (such as `conda` and others). Details are covered in the section on _requirements_ below.
+To run the scripts included with `PYME-test-env` a few packages are needed, such as `pyyaml` and `requests` plus some other dependencies (such as `conda` and others). Details are covered in the [section on requirements](#requirements-before-you-can-start-a-pyme-test-install) below.
 
 ## Synopsis
 

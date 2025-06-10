@@ -291,8 +291,12 @@ Some typical uses are demonstrated in the file [current-commands.md](current-com
 
 ## Issues
 
-We are currently not checking the success of some of the commands properly. This makes debugging issues a little harder and we will consider making this more robust over time if we find the actual usage of this (somewhat experimental) project warrants it.
-
-The clean-up script `remove-test-environment.py` docs should be improved.
-The add-on install script `mk_extra_stuff.py` docs should be improved.
+- We are currently not checking the success of some of the commands properly. This makes debugging issues a little harder
+and we will consider making this more robust over time if we find the actual usage of this (somewhat experimental) project warrants it.
+- We are using the `base` environment to run the installs from. One can argue with this as it may be preferable to leave `base` untouched
+and we currently install a few packages, such as `pyyaml`, `git` and possibly more in future. It should be possible to make a specific
+environment for `PYME-test-env` with a hardcoded name and install all dependencies into it. This way scripts can check for the name etc
+and we can keep a pristine `base` but not sure how important a pristine `base` really is.
+- The clean-up script `remove-test-environment.py` docs should be improved.
+- The add-on install script `mk_extra_stuff.py` docs should be improved.
 

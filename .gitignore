@@ -4,6 +4,8 @@ build-test-conda/
 build-test*/
 b-*-mamba/
 b-*-conda/
+build-*-mamba/
+build-*-conda/
 *~
 .DS_Store
 .roadmap*

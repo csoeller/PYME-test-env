@@ -28,7 +28,7 @@ python mk_pyme_env.py --python 3.9 -c mamba
 python mk_pyme_env.py --python=3.7 -c mamba --environment pyme-py37-v1
 	
 # remove a test environment previously installed with a 3.10 python
-python remove-test-environment.py --python=3.10
+python remove-pyme-environment.py --python=3.10
 	
 # test with recent python and forked branch to fix compatibility issues
 # note double quotes in arguments for windows, single quotes cause issues!
@@ -262,7 +262,7 @@ Please consult [this section](https://github.com/csoeller/pyme-install-docs/blob
 
 For convenience in removing test environments and build directories we have a little script that is invoked with:
 
-	python remove-test-environment.py ...
+	python remove-pyme-environment.py ...
 
 The idea is to use the same options used to create the environment and it should figure out which environment to remove and where the build directory is. We'll add more docs on this script if needed/requested.
 
@@ -313,6 +313,6 @@ and we will consider making this more robust over time if we find the actual usa
 and we currently install a few packages, such as `pyyaml`, `git` and possibly more in future. It should be possible to make a specific
 environment for `PYME-test-env` with a hardcoded name and install all dependencies into it. This way scripts can check for the name etc
 and we can keep a pristine `base` but not sure how important a pristine `base` really is.
-- The clean-up script `remove-test-environment.py` docs should be improved.
+- The clean-up script `remove-pyme-environment.py` docs should be improved.
 - The add-on install script `mk_extra_stuff.py` docs should be improved.
 

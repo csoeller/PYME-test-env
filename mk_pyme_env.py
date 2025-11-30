@@ -1,5 +1,5 @@
 import condacmds as cmds
-from condacmds import download_pyme_extra, download_pyme, build_pyme_extra, build_pyme, pyme_extra_install_plugins
+from condacmds import download_pyme_extra, download_pyme, build_pyme_extra, build_pyme, pyme_extra_install_plugins, download_pyme_extra_release, download_pyme_release
 from pathlib import Path
 import logging
 
@@ -37,6 +37,10 @@ parser.add_argument('--no-pymex',action="store_true",
                     help='omit downloading and installing PYME-extra')
 parser.add_argument('--no-pyme-depends',action="store_true",
                     help='install from package list rather than using pyme-depends')
+parser.add_argument('--pyme-release',default=None,
+                    help='release tag for PYME release to build; mutually exclusive with --use-git option')
+parser.add_argument('--pymex-release',default=None,
+                    help='release tag for PYME-extra release to build; mutually exclusive with --use-git option')
 parser.add_argument('--use-git',action="store_true",
                     help='clone git repo locally rather than just downloading snapshot')
 parser.add_argument('--no-strict-channel',action="store_true",
@@ -86,6 +90,7 @@ pbld = cmds.PymeBuild(pythonver=args.python,
                       use_git=args.use_git,suffix=args.suffix,
                       strict_conda_forge_channel=not args.no_strict_channel,
                       dry_run=args.dry_run,xtra_packages=args.xtra_packages,
+                      pyme_release=args.pyme_release,pymex_release=args.pymex_release
                       )
 
 # TODO: here possibly check a _settings attribute for compatibility with the actual PymeBuild attributes
@@ -101,6 +106,8 @@ if args.dry_run:
     import sys
     sys.exit(0)
 
+# check consistency of some of the arg choices
+pbld.check_consistency()
 
 # some checks if some of the required packages are available
 
@@ -206,13 +213,18 @@ else:
 # silly solution: move PYME-test-env repo close to root of disk and abbreviate build_directory name
 #### There must be a better solution!!
 
-if pbld.use_git:
+if pbld.pyme_release is not None:
+    download_mode = 'release'
+elif pbld.use_git:
     download_mode = 'git'
 else:
     download_mode = 'snapshot'
 
-download_pyme(build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch,mode=download_mode)
-build_pyme(environment,build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch)
+if pbld.pyme_release is not None:
+    download_pyme_release(pbld.pyme_release,build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch)
+else:    
+    download_pyme(build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch,mode=download_mode)
+build_pyme(environment,build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch,release=pbld.pyme_release)
 
 # this should fail if our PYME install failed
 result = cmds.run_cmd_in_environment('python -c "import PYME.version; print(PYME.version.version)"',environment,check=True)
@@ -228,9 +240,19 @@ if pbld.with_pymex:
     result = cmds.pip_install(environment, Pymex_pip_packages)
     logging.info(result)
 
-    download_pyme_extra(build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch,mode=download_mode)
-    build_pyme_extra(environment,build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch)
-    pyme_extra_install_plugins(environment,build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch)
+    if pbld.pymex_release is not None:
+        download_mode = 'release'
+    elif pbld.use_git:
+        download_mode = 'git'
+    else:
+        download_mode = 'snapshot'
+
+    if pbld.pymex_release is not None:
+        download_pyme_extra_release(pbld.pymex_release,build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch)
+    else:
+        download_pyme_extra(build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch,mode=download_mode)
+    build_pyme_extra(environment,build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch,release=pbld.pymex_release)
+    pyme_extra_install_plugins(environment,build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch,release=pbld.pymex_release)
 
 # 4. some custom recipes for some ease in a testing environment
 if pbld.with_recipes:

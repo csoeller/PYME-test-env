@@ -19,6 +19,9 @@ parser.add_argument('--dry-run',action="store_true",
 
 args = parser.parse_args()
 
+cmds.check_condaenv('base') # check we are running in the base environment
+cmds.check_yaml_installed() # check yaml is available
+
 pbld = cmds.PymeBuild(pythonver=args.python,
                       build_dir=args.buildstem,
                       condacmd=args.condacmd,

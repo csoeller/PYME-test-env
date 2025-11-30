@@ -113,10 +113,12 @@ Once in the directory, you can try to run the script to build the environment. I
 which should print the usage info, currently showing something like:
 
 ```
-usage: mk_pyme_env.py [-h] [--python PYTHON] [--buildstem BUILDSTEM] [--suffix SUFFIX] [-c {conda,mamba}] [-e ENVIRONMENT]
-                      [--recipes] [--pyme-repo PYME_REPO] [--pyme-branch PYME_BRANCH] [--pymex-repo PYMEX_REPO]
-                      [--pymex-branch PYMEX_BRANCH] [--no-pymex] [--no-pyme-depends] [--use-git] [--no-strict-channel] [--dry-run]
-                      [-x XTRA_PACKAGES [XTRA_PACKAGES ...]] [--matplotlib-numpy-latest]
+usage: mk_pyme_env.py [-h] [--python PYTHON] [--buildstem BUILDSTEM] [--suffix SUFFIX] [-c {conda,mamba}]
+                      [-e ENVIRONMENT] [--recipes] [--pyme-repo PYME_REPO] [--pyme-branch PYME_BRANCH]
+                      [--pymex-repo PYMEX_REPO] [--pymex-branch PYMEX_BRANCH] [--no-pymex] [--no-pyme-depends]
+                      [--pyme-release PYME_RELEASE] [--pymex-release PYMEX_RELEASE] [--use-git]
+                      [--no-strict-channel] [--dry-run] [-x XTRA_PACKAGES [XTRA_PACKAGES ...]]
+                      [--matplotlib-numpy-latest]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -139,6 +141,10 @@ optional arguments:
                         branch of PYME-extra to use in build; defaults to master
   --no-pymex            omit downloading and installing PYME-extra
   --no-pyme-depends     install from package list rather than using pyme-depends
+  --pyme-release PYME_RELEASE
+                        release tag for PYME release to build; mutually exclusive with --use-git option
+  --pymex-release PYMEX_RELEASE
+                        release tag for PYME-extra release to build; mutually exclusive with --use-git option
   --use-git             clone git repo locally rather than just downloading snapshot
   --no-strict-channel   enforce strict adherance to conda-forge channel
   --dry-run             just process options but do not run any commands
@@ -174,6 +180,16 @@ If everything works ok, you can activate the new environment, e.g. something lik
 and try some of the usual pyme commands.
 
 For windows users, one can make this more simple by using the launchers we have included (for `visgui`, `dh5view` and `PYMEClusterOfOne`). For these to work one needs to set up a couple of environment variables so that conda/mamba are found and the correct environment is activated to execute the pyme apps from (see below).
+
+#### Downloading and building specific releases
+
+In some circumstances you may want to download and build specific releases of `PYME` and `PYME-extra`. This can be achieved with the `--pyme-release` and `--pymex-release` options. If these options are not given a current snapshot of the `PYME` and `PYME-extra` repositories are downloaded and built.
+
+The arguments to these options should be the release tag on github for the release in question, e.g.
+
+    --pymex-release 25.11.29
+
+Note that the release options will conflict with the `--use-git` option (explained below) if selected. The rationale is that you can choose the specific commit manually when you clone the repo using git.
 
 #### Use git to clone repo (useful to work on code in test environment)
 

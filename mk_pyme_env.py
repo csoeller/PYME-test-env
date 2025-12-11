@@ -35,6 +35,8 @@ parser.add_argument('--pymex-branch',default='master',
                     help='branch of PYME-extra to use in build; defaults to master')
 parser.add_argument('--no-pymex',action="store_true",
                     help='omit downloading and installing PYME-extra')
+parser.add_argument('--no-pyme-build',action="store_true",
+                    help='omit building and installing PYME')
 parser.add_argument('--no-pyme-depends',action="store_true",
                     help='install from package list rather than using pyme-depends')
 parser.add_argument('--pyme-release',default=None,
@@ -50,7 +52,9 @@ parser.add_argument('--dry-run',action="store_true",
 parser.add_argument('-x','--xtra-packages', action="extend", nargs="+", type=str,
                     help='extra packages to install into the new environment')
 parser.add_argument('--matplotlib-numpy-latest',action="store_true",
-                    help='instruct conda to use latest matplolib and numpy; currently used for testing of numpy>=2')
+                    help='instruct conda to use latest matplolib and numpy; currently used for testing of numpy>=2 and PYME meson build')
+parser.add_argument('--setuptools-latest',action="store_true",
+                    help='instruct conda to use latest setuptools; currently used for testing PYME meson build')
 
 
 
@@ -83,6 +87,7 @@ pbld = cmds.PymeBuild(pythonver=args.python,
                       condacmd=args.condacmd,
                       environment=args.environment,
                       with_pyme_depends=not args.no_pyme_depends,
+                      with_pyme_build=not args.no_pyme_build,
                       with_pymex=not args.no_pymex,
                       with_recipes=args.recipes,
                       pyme_repo=args.pyme_repo, pyme_branch=args.pyme_branch,
@@ -177,6 +182,10 @@ if args.matplotlib_numpy_latest:
 else:
     numpy = 'numpy<2'
 
+if args.setuptools_latest:
+    setuptools = 'setuptools'
+else:
+    setuptools = 'setuptools<=73'
 
 if platform.machine() != 'arm64' and prepy3_10 and pbld.with_pyme_depends:
     packages = Packages['with_pyme_depends']['packages']
@@ -192,7 +201,7 @@ else:
         package_sets = Packages['no_pyme_depends']['packagelists_win']['conda']
  
     for packages in package_sets:
-        packages_expanded = [pack.replace('$matplotlib$',matplotlib).replace('$numpy$',numpy) for pack in packages]
+        packages_expanded = [pack.replace('$matplotlib$',matplotlib).replace('$numpy$',numpy).replace('$setuptools$',setuptools) for pack in packages]
         result = cmds.conda_install(environment, packages_expanded, channels = ['conda-forge'])
         logging.info(result)
 
@@ -224,11 +233,13 @@ if pbld.pyme_release is not None:
     download_pyme_release(pbld.pyme_release,build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch)
 else:    
     download_pyme(build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch,mode=download_mode)
-build_pyme(environment,build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch,release=pbld.pyme_release)
+    
+if pbld.with_pyme_build:
+    build_pyme(environment,build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch,release=pbld.pyme_release)
 
-# this should fail if our PYME install failed
-result = cmds.run_cmd_in_environment('python -c "import PYME.version; print(PYME.version.version)"',environment,check=True)
-logging.info("Got PYME version %s" % result)
+    # this should fail if our PYME install failed
+    result = cmds.run_cmd_in_environment('python -c "import PYME.version; print(PYME.version.version)"',environment,check=True)
+    logging.info("Got PYME version %s" % result)
 
 # 3. build/install pyme-extra
 if pbld.with_pymex:

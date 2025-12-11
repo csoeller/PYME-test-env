@@ -154,3 +154,5 @@ tasklist-acquisition-install.txt
 currently-active-environments.md
 
 getreleases.py
+
+*.patch

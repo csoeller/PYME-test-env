@@ -372,7 +372,7 @@ import logging
 class PymeBuild(object):
     def __init__(self,pythonver,build_dir='build-test',condacmd='conda',
                  environment=None, mk_build_dir=True, start_log=True,
-                 with_pyme_depends=True,with_pymex=True,
+                 with_pyme_depends=True,with_pyme_build=True,with_pymex=True,
                  with_recipes=False,
                  pyme_repo=None, pyme_branch=None,
                  pymex_repo=None, pymex_branch=None,
@@ -398,6 +398,7 @@ class PymeBuild(object):
         else:
             self.env = environment
         self.with_pyme_depends = with_pyme_depends
+        self.with_pyme_build = with_pyme_build
         self.with_pymex = with_pymex
         self.with_recipes = with_recipes
                 

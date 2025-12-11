@@ -7,7 +7,7 @@ Packages = {
     'no_pyme_depends' : {
         'packagelists_mac' : {
             'conda' : [
-                ['setuptools<=73'], # setuptools 74.x triggers issue https://github.com/numpy/numpy/issues/27405 on mac
+                ['$setuptools$'], # setuptools 74.x triggers issue https://github.com/numpy/numpy/issues/27405 on mac
                 # start off with numpy/scipy
                 # the "libblas=*=*accelerate" arguments according to a number of sites, e.g.
                 #   - https://github.com/joblib/threadpoolctl/issues/135
@@ -34,7 +34,7 @@ Packages = {
         },
         'packagelists_win' : {
             'conda': [
-                ['setuptools<=73'], # setuptools 74.x triggers issue https://github.com/numpy/numpy/issues/27405 on win, too!
+                ['$setuptools$'], # setuptools 74.x triggers issue https://github.com/numpy/numpy/issues/27405 on win, too!
                 'scipy $numpy$'.split(), # here we should have some suitably fast installation by default but may want to check
                 '$matplotlib$ pytables pyopengl jinja2 cython pip requests pyyaml'.split(),
                 'psutil pandas scikit-image scikit-learn sphinx toposort pybind11'.split(),

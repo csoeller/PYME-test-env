@@ -12,6 +12,7 @@ Eventually, this will be folded into the main build command (`mk_pyme_env.py`).
     cd build-test-py3.11-conda_meson/python-microscopy-master
 	conda activate test-pyme-3.11-conda_meson
 	pip install build # conda tries to install some 0.x version of build which fails
+	# just saw on the "build" page (https://pypi.org/project/build/): "on conda-forge, this package is called python-build"
 	conda install meson meson-python
 	export ARCHFLAGS="-arch arm64" # we should be able to use platform.uname().machine to predict the arch
 	# how do we set env vars when running the build via subprocess, probably using a shell?

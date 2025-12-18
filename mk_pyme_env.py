@@ -1,5 +1,5 @@
 import condacmds as cmds
-from condacmds import download_pyme_extra, download_pyme, build_pyme_extra, build_pyme, pyme_extra_install_plugins, download_pyme_extra_release, download_pyme_release
+from condacmds import download_pyme_extra, download_pyme, build_pyme_extra, build_pyme, build_pyme_meson, pyme_extra_install_plugins, download_pyme_extra_release, download_pyme_release
 from pathlib import Path
 import logging
 
@@ -55,6 +55,8 @@ parser.add_argument('--matplotlib-numpy-latest',action="store_true",
                     help='instruct conda to use latest matplolib and numpy; currently used for testing of numpy>=2 and PYME meson build')
 parser.add_argument('--setuptools-latest',action="store_true",
                     help='instruct conda to use latest setuptools; currently used for testing PYME meson build')
+parser.add_argument('--pyme-build-meson',action="store_true",
+                    help='build pyme with meson (new build method)')
 
 
 
@@ -95,7 +97,8 @@ pbld = cmds.PymeBuild(pythonver=args.python,
                       use_git=args.use_git,suffix=args.suffix,
                       strict_conda_forge_channel=not args.no_strict_channel,
                       dry_run=args.dry_run,xtra_packages=args.xtra_packages,
-                      pyme_release=args.pyme_release,pymex_release=args.pymex_release
+                      pyme_release=args.pyme_release,pymex_release=args.pymex_release,
+                      pyme_build_meson=args.pyme_build_meson
                       )
 
 # TODO: here possibly check a _settings attribute for compatibility with the actual PymeBuild attributes
@@ -235,8 +238,10 @@ else:
     download_pyme(build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch,mode=download_mode)
     
 if pbld.with_pyme_build:
-    build_pyme(environment,build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch,release=pbld.pyme_release)
-
+    if pbld.pyme_build_meson:
+        build_pyme_meson(environment,build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch,release=pbld.pyme_release)
+    else:
+        build_pyme(environment,build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch,release=pbld.pyme_release)
     # this should fail if our PYME install failed
     result = cmds.run_cmd_in_environment('python -c "import PYME.version; print(PYME.version.version)"',environment,check=True)
     logging.info("Got PYME version %s" % result)

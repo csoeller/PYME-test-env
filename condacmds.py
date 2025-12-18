@@ -356,6 +356,28 @@ def download_pyme_release(release,build_dir="build-test",branch='master',repo='p
 def build_pyme(environment,build_dir="build-test",repo='python-microscopy/python-microscopy',branch='master',release=None):
     build_repo_generic(environment,repo,build_dir,branch,release=release)
 
+def build_pyme_meson(environment,build_dir="build-test",repo='python-microscopy/python-microscopy',branch='master',release=None):
+    ret = conda_install(environment, 'python-build meson meson-python'.split(), channels = ['conda-forge'])
+    logging.info("installing meson build dependencies...")
+    logging.info(ret)
+    
+    if release is not None:
+        repodir = repo_release_dir(repo,build_dir,release)
+    else:
+        repodir = repo_dir(repo,branch=branch,build_dir=build_dir)
+    
+    import platform
+    arch = platform.uname().machine
+    build_cmd = 'python -m pip install --no-deps --no-build-isolation --editable .' # largely an equivalent of python setup.py develop
+    if platform.system() != 'Windows':
+        archcmd = 'export ARCHFLAGS="-arch %s"' % arch
+        combined_cmd = "%s ; %s" % (archcmd,build_cmd)
+    else:
+        combined_cmd = build_cmd
+    result = run_cmd_in_environment(combined_cmd, environment, cwd=repodir)
+    logging.info("building PYME with meson...")
+    logging.info(ret)
+
 def build_pyme_extra(environment,build_dir="build-test",repo='csoeller/PYME-extra',branch='master',release=None):
     build_repo_generic(environment,repo,build_dir,branch,release=release)
 
@@ -379,7 +401,8 @@ class PymeBuild(object):
                  use_git=False, suffix=None,
                  strict_conda_forge_channel=True, dry_run=False,
                  xtra_packages=None, logfile=None,
-                 pyme_release=None,pymex_release=None):
+                 pyme_release=None,pymex_release=None,
+                 pyme_build_meson=False):
         self.suffix = suffix
         self.pythonver = pythonver
         if self.suffix is None:
@@ -408,6 +431,7 @@ class PymeBuild(object):
         self.pymex_repo=pymex_repo
         self.pymex_branch=pymex_branch
         self.pymex_release=pymex_release
+        self.pyme_build_meson=pyme_build_meson
         
         self.use_git = use_git
 
@@ -503,6 +527,7 @@ class PymeBuild(object):
         pyme_repo={self.pyme_repo}, pyme_branch={self.pyme_branch},
         pymex_repo={self.pymex_repo}, pymex_branch={self.pymex_branch},
         pyme_release={self.pyme_release},pymex_release={self.pymex_release},
+        pyme_build_meson={self.pyme_build_meson},
         with_recipes={self.with_recipes}, logging={self.logging}, logfile={self.logfile},
         use_git={self.use_git}, suffix={self.suffix},
         strict_conda_forge_channel={self.strict_conda_forge_channel}, dry_run={self.dry_run},

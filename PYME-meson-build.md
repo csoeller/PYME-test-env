@@ -2,6 +2,22 @@
 
 ## Current list of commands
 
+The following works now on windows:
+
+    python mk_pyme_env.py --python=3.11 --suffix=_ms2 --pyme-build-meson --matplotlib-numpy-latest --setuptools-latest --use-git -c mamba --pyme-repo csoeller/python-microscopy --pyme-branch meson-fixes --pymex-branch paraflux
+
+The following works now on mac:
+
+    python mk_pyme_env.py --python=3.11 --suffix=_meson --no-pymex --pyme-build-meson --matplotlib-numpy-latest --setuptools-latest --use-git
+
+This uses the `--pyme-build-meson` flag and works so far although some code will need further fixes to use the importlib interface rather than package variables.
+
+If this succeeds PYME-extra can be built with an extra command:
+
+    python mk_extra_stuff.py --python=3.11 --suffix=_meson --use-git --xtra-sets PYME-extra
+
+## Previous more manual approach
+
 Currently, the process is a little bit manual until sussed out more fully. We are working from David's short [build instructions](https://github.com/python-microscopy/python-microscopy/blob/master/BUILD.md).
 
 Eventually, this will be folded into the main build command (`mk_pyme_env.py`).

@@ -6,7 +6,13 @@ The following works now on windows:
 
     python mk_pyme_env.py --python=3.11 --suffix=_ms2 --pyme-build-meson --matplotlib-numpy-latest --setuptools-latest --use-git -c mamba --pyme-repo csoeller/python-microscopy --pyme-branch meson-fixes --pymex-branch paraflux
 
-The following works now on mac:
+and also on mac (using conda instead of mamba):
+
+    python mk_pyme_env.py --python=3.11 --suffix=_ms1 --pyme-build-meson --matplotlib-numpy-latest --setuptools-latest --use-git --pyme-repo csoeller/python-microscopy --pyme-branch meson-fixes --pymex-branch paraflux
+	
+### Two step process on mac (superseded)
+
+The following works on mac but is superseded by the command above which has the advantage of being able to set the paraflux branch on build of PYME-extra.
 
     python mk_pyme_env.py --python=3.11 --suffix=_meson --no-pymex --pyme-build-meson --matplotlib-numpy-latest --setuptools-latest --use-git
 

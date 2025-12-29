@@ -20,7 +20,9 @@ Packages = {
                 # conda install "libblas=*=*blis"
                 # conda install "libblas=*=*accelerate"
                 # conda install "libblas=*=*netlib"
-                'scipy $numpy$ "libblas=*=*accelerate"'.split(),
+                # conda install libblas=*=*_newaccelerate # according to https://conda-forge.org/news/2025/07/31/new-accelerate-macos/
+                'scipy $numpy$ "libblas=*=*_newaccelerate"'.split(), # testing the _newaccelerate modification
+                # 'scipy $numpy$ "libblas=*=*accelerate"'.split(),
                 # next the main other dependecies
                 ('$matplotlib$ pytables pyopengl jinja2 cython pip requests pyyaml' +
                  ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),

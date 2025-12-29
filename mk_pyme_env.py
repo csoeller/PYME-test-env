@@ -1,5 +1,5 @@
 import condacmds as cmds
-from condacmds import download_pyme_extra, download_pyme, build_pyme_extra, build_pyme, build_pyme_meson, pyme_extra_install_plugins, download_pyme_extra_release, download_pyme_release
+#from condacmds import download_pyme_extra, download_pyme, build_pyme_extra, build_pyme, build_pyme_meson, pyme_extra_install_plugins, download_pyme_extra_release, download_pyme_release
 from pathlib import Path
 import logging
 
@@ -55,8 +55,8 @@ parser.add_argument('--matplotlib-numpy-latest',action="store_true",
                     help='instruct conda to use latest matplolib and numpy; currently used for testing of numpy>=2 and PYME meson build')
 parser.add_argument('--setuptools-latest',action="store_true",
                     help='instruct conda to use latest setuptools; currently used for testing PYME meson build')
-parser.add_argument('--pyme-build-meson',action="store_true",
-                    help='build pyme with meson (new build method)')
+# parser.add_argument('--pyme-build-meson',action="store_true",
+#                     help='build pyme with meson (new build method)')
 
 
 
@@ -98,7 +98,6 @@ pbld = cmds.PymeBuild(pythonver=args.python,
                       strict_conda_forge_channel=not args.no_strict_channel,
                       dry_run=args.dry_run,xtra_packages=args.xtra_packages,
                       pyme_release=args.pyme_release,pymex_release=args.pymex_release,
-                      pyme_build_meson=args.pyme_build_meson
                       )
 
 # TODO: here possibly check a _settings attribute for compatibility with the actual PymeBuild attributes
@@ -173,19 +172,28 @@ import platform
 prepy3_10 = version.parse(pbld.pythonver) < version.parse("3.10")
 postpy3_10 = version.parse(pbld.pythonver) > version.parse("3.10")
 
-if args.matplotlib_numpy_latest:
+# first download our main packages to check if we are using the new style build
+pbld.pyme_src.download() # download even if not building
+if pbld.with_pymex:
+    pbld.pymex_src.download()
+
+newstyle_build = pbld.pyme_src.new_install_type()
+if pbld.with_pymex:
+    newstyle_build = newstyle_build or pbld.pymex_src.new_install_type()
+
+if args.matplotlib_numpy_latest or newstyle_build:
     matplotlib = 'matplotlib'
 elif not prepy3_10: # we are now testing if latest PYME can deal with more recent matplotlib
     matplotlib = 'matplotlib<=3.8'
 else:
     matplotlib = 'matplotlib<=3.6'
 
-if args.matplotlib_numpy_latest:
+if args.matplotlib_numpy_latest or newstyle_build:
     numpy = 'numpy'
 else:
     numpy = 'numpy<2'
 
-if args.setuptools_latest:
+if args.setuptools_latest or newstyle_build:
     setuptools = 'setuptools'
 else:
     setuptools = 'setuptools<=73'
@@ -225,50 +233,28 @@ else:
 # silly solution: move PYME-test-env repo close to root of disk and abbreviate build_directory name
 #### There must be a better solution!!
 
-if pbld.pyme_release is not None:
-    download_mode = 'release'
-elif pbld.use_git:
-    download_mode = 'git'
-else:
-    download_mode = 'snapshot'
 
-if pbld.pyme_release is not None:
-    download_pyme_release(pbld.pyme_release,build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch)
-else:    
-    download_pyme(build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch,mode=download_mode)
-    
 if pbld.with_pyme_build:
-    if pbld.pyme_build_meson:
-        build_pyme_meson(environment,build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch,release=pbld.pyme_release)
-    else:
-        build_pyme(environment,build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch,release=pbld.pyme_release)
+    if pbld.pyme_src.new_install_type():
+        ret = cmds.conda_install(environment, 'python-build meson meson-python'.split(), channels = ['conda-forge'])
+        logging.info("new type PYME install, installing meson build dependencies...")
+        logging.info(ret)
+
+    pbld.pyme_src.build_and_install()
     # this should fail if our PYME install failed
     result = cmds.run_cmd_in_environment('python -c "import PYME.version; print(PYME.version.version)"',environment,check=True)
     logging.info("Got PYME version %s" % result)
 
 # 3. build/install pyme-extra
 if pbld.with_pymex:
-    # pyme-extra dependencies are listed in two variables at the top of the file
-    #    in Pymex_conda_packages and Pymex_pip_packages
     result = cmds.conda_install(environment, Pymex_conda_packages, channels = ['conda-forge'])
     logging.info(result)
 
     result = cmds.pip_install(environment, Pymex_pip_packages)
     logging.info(result)
 
-    if pbld.pymex_release is not None:
-        download_mode = 'release'
-    elif pbld.use_git:
-        download_mode = 'git'
-    else:
-        download_mode = 'snapshot'
-
-    if pbld.pymex_release is not None:
-        download_pyme_extra_release(pbld.pymex_release,build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch)
-    else:
-        download_pyme_extra(build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch,mode=download_mode)
-    build_pyme_extra(environment,build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch,release=pbld.pymex_release)
-    pyme_extra_install_plugins(environment,build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch,release=pbld.pymex_release)
+    pbld.pymex_src.build_and_install()
+    pbld.pymex_src.postinstall()
 
 # 4. some custom recipes for some ease in a testing environment
 if pbld.with_recipes:

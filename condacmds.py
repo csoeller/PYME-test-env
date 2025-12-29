@@ -205,185 +205,6 @@ def pip_install(environment, packages):
         proc_error_msg(e)
     return ret
 
-#################################
-# github repository handling code
-#################################
-
-from urllib.parse import urljoin
-def repo_url(repo,branch='master'):
-    snapshot_path = '%s/archive/refs/heads/%s.zip' % (repo,branch)
-    github_prefix = 'https://github.com/'
-    repo_url = urljoin(github_prefix, snapshot_path)
-    return repo_url
-
-def unpack_snapshot(snapshot_file,target_dir):
-    import shutil
-    shutil.unpack_archive(snapshot_file,target_dir)
-
-def repobasename(repo):
-    return repo.split('/')[-1]
-    
-def download_repo_snapshot(repo, target_dir,branch='master',url=None):
-    import requests
-    import pathlib
-
-    if url is None:
-        url = repo_url(repo,branch=branch)
-
-    downloaded_file = pathlib.Path(target_dir) / ("%s.zip" % repobasename(repo))
-    downloaded_file.write_bytes(requests.get(url).content)
-
-def repo_dirname(repo,branch='master'):
-    return repobasename(repo) + '-%s' % branch
-
-def repo_dir(repo,branch='master',build_dir="build-test"):
-    import pathlib
-    return pathlib.Path(build_dir) / repo_dirname(repo,branch=branch)
-
-def repo_release_dir(repo,build_dir,release):
-    import pathlib
-    zip_path = pathlib.Path(build_dir) / ("%s.zip" % repobasename(repo))
-    if not zip_path.exists():
-        raise RuntimeError("no zip file at zip path %s" % zip_path)
-    import zipfile
-    # zip file handler  
-    zip = zipfile.ZipFile(zip_path)
-    # list available files in the container
-    repodir = zip.namelist()[0]
-    zip.close()
-    return pathlib.Path(build_dir) / repodir
-
-def repo_cmd(cmd,repo,environment,branch='master',build_dir="build-test",repodir=None):
-    if repodir is None:
-        # need to see if a relative path is enough
-        repodir = repo_dir(repo,branch=branch,build_dir=build_dir)
-    # we could make the install mode selectable
-    result = run_cmd_in_environment(cmd, environment, cwd=repodir)
-    return result
-
-def build_repo(repo,environment,branch='master',build_dir="build-test",repodir=None):    
-    return repo_cmd("python setup.py develop",repo,environment,
-                    branch=branch,build_dir=build_dir,repodir=repodir)
-
-def repo_install_plugins(repo,environment,branch='master',build_dir="build-test",repodir=None):
-    return repo_cmd("python install_plugins.py",repo,environment,
-                    branch=branch,build_dir=build_dir,repodir=repodir)
-
-# used in 'git' mode to clone the full repository locally
-def mk_git_url(repo):
-    from urllib.parse import urljoin
-    return urljoin('https://github.com/', "%s.git" % repo)
-
-def clone_repo(repo,target_dir,branch='master'):
-    import git
-
-    repo = git.Repo.clone_from(mk_git_url(repo), # we need to define this function
-                               target_dir,
-                               branch=branch)
-
-def get_release_url(repository,release_tag):
-    release_url = "https://api.github.com/repos/{}/releases/tags/{}".format(repository,release_tag)
-    return release_url
-
-def get_github_response(repository,release_tag):
-    import requests
-    release_url = get_release_url(repository,release_tag)
-    release_response = requests.get(release_url)
-    if release_response.ok:
-        return release_response
-    else:
-        if release_response.reason == 'Not Found':
-            warn("release %s not found" % release_tag)
-        else:
-            warn("requesting release %s not successful, reason: %s" %(release_tag,release_response.reason))
-        return None
-
-def download_repo_release(repo, target_dir, release):
-    import requests
-    import pathlib
-
-    response = get_github_response(repo, release)
-    if response is None:
-        raise RuntimeError("could not retrive release with release tag %s; is tag correct?" % release)
-    zipurl = response.json().get('zipball_url')
-    if zipurl is None:
-        raise RuntimeError("could not retrieve zip url for release %s" % release)
-    download_repo_snapshot(repo, target_dir,url=zipurl)
-
-def download_repo_generic(repo,build_dir,branch,mode,release=None):
-    if mode == 'snapshot':
-        download_repo_snapshot(repo, build_dir, branch=branch)
-        unpack_snapshot(Path(build_dir) / ("%s.zip" % repobasename(repo)), build_dir)
-    elif mode == 'release':
-        download_repo_release(repo, build_dir, release)
-        unpack_snapshot(Path(build_dir) / ("%s.zip" % repobasename(repo)), build_dir)
-    elif mode == 'git':
-        target_dir = Path(build_dir) / repo_dirname(repo,branch=branch)
-        clone_repo(repo,target_dir,branch=branch)
-    else:
-        raise RuntimeError("unknown mode '%s'" % mode)    
-
-def build_repo_generic(environment,repo,build_dir,branch,release=None):
-    if release is not None:
-        repodir = repo_release_dir(repo,build_dir,release)
-    else:
-        repodir = None
-    ret = build_repo(repo,environment,build_dir=build_dir,branch=branch,repodir=repodir)
-    logging.info("building %s..." % repobasename(repo))
-    logging.info(ret)
-
-def repo_install_plugins_generic(environment,build_dir,repo,branch,release=None):
-    if release is not None:
-        repodir = repo_release_dir(repo,build_dir,release)
-    else:
-        repodir = None
-    ret = repo_install_plugins(repo,environment,build_dir=build_dir,branch=branch,repodir=repodir)
-    logging.info("installing %s plugins..." % repobasename(repo))
-    logging.info(ret)
-    
-def download_pyme_extra(build_dir="build-test",branch='master',repo='csoeller/PYME-extra',mode='snapshot'):
-    download_repo_generic(repo,build_dir,branch,mode)
-    
-def download_pyme(build_dir="build-test",branch='master',repo='python-microscopy/python-microscopy',mode='snapshot'):
-    download_repo_generic(repo,build_dir,branch,mode)
-
-def download_pyme_extra_release(release,build_dir="build-test",branch='master',repo='csoeller/PYME-extra'):
-    download_repo_generic(repo,build_dir,branch,'release',release=release)
-    
-def download_pyme_release(release,build_dir="build-test",branch='master',repo='python-microscopy/python-microscopy'):
-    download_repo_generic(repo,build_dir,branch,'release',release=release)
-
-def build_pyme(environment,build_dir="build-test",repo='python-microscopy/python-microscopy',branch='master',release=None):
-    build_repo_generic(environment,repo,build_dir,branch,release=release)
-
-def build_pyme_meson(environment,build_dir="build-test",repo='python-microscopy/python-microscopy',branch='master',release=None):
-    ret = conda_install(environment, 'python-build meson meson-python'.split(), channels = ['conda-forge'])
-    logging.info("installing meson build dependencies...")
-    logging.info(ret)
-    
-    if release is not None:
-        repodir = repo_release_dir(repo,build_dir,release)
-    else:
-        repodir = repo_dir(repo,branch=branch,build_dir=build_dir)
-    
-    import platform
-    arch = platform.uname().machine
-    build_cmd = 'python -m pip install --no-deps --no-build-isolation --editable .' # largely an equivalent of python setup.py develop
-    if platform.system() != 'Windows':
-        archcmd = 'export ARCHFLAGS="-arch %s"' % arch
-        combined_cmd = "%s ; %s" % (archcmd,build_cmd)
-    else:
-        combined_cmd = build_cmd
-    result = run_cmd_in_environment(combined_cmd, environment, cwd=repodir)
-    logging.info("building PYME with meson...")
-    logging.info(ret)
-
-def build_pyme_extra(environment,build_dir="build-test",repo='csoeller/PYME-extra',branch='master',release=None):
-    build_repo_generic(environment,repo,build_dir,branch,release=release)
-
-def pyme_extra_install_plugins(environment,build_dir="build-test",repo='csoeller/PYME-extra',branch='master',release=None):
-    repo_install_plugins_generic(environment,build_dir,repo,branch,release=release)
-
 
 #################################################################
 # PymeBuild class to collect some info and setup code for a build
@@ -391,6 +212,157 @@ def pyme_extra_install_plugins(environment,build_dir="build-test",repo='csoeller
 
 import pathlib
 import logging
+
+def repobasename(repo):
+    return repo.split('/')[-1]
+
+class SourceInfo(object):
+    def __init__(self,environment,build_dir,repo_name,from_git=False,branch='master',release=None,
+                 install_test_file=None,post_install_cmd=None):
+        self.target_environment = environment
+        self.build_dir = build_dir
+        self.repo_name = repo_name
+        self.repo_branch = branch
+        self.from_git = from_git
+        self.release = release
+        self.post_install_cmd = post_install_cmd
+        self.install_test_file = install_test_file
+        
+        self._code_downloaded = False
+        self._downloaded_file = None
+        self._pck_dir = None
+
+        if self.release is not None:
+            self.download_mode = 'release'
+        elif self.from_git:
+            self.download_mode = 'git'
+        else:
+            self.download_mode = 'snapshot'
+
+    def new_install_type(self):
+        if self.install_test_file is None:
+            return False
+        if not self._code_downloaded:
+            raise RuntimeError("trying to determine install type before code was downloaded")
+        test_file_full_path = self.package_dir_name() / self.install_test_file
+        return test_file_full_path.exists()
+
+    def _install_cmd(self):
+        if self.new_install_type():
+            return "python -m pip install --no-deps --no-build-isolation --editable ."
+        else:
+            return "python setup.py develop"
+
+    def _post_install_cmd(self):
+        if self.post_install_cmd is None:
+            return None # do nothing
+        if self.new_install_type():
+            cmd = self.post_install_cmd['new']
+        else:
+            cmd = self.post_install_cmd['old']
+
+        return cmd
+    
+    def package_dir_name(self):
+        # make and return package dir name from info in the object
+        if self._pck_dir is not None: # caching
+            return self._pck_dir
+        
+        if self.download_mode == 'snapshot' or self.download_mode == 'git':
+            pck_dir = pathlib.Path(self.build_dir) / (repobasename(self.repo_name) + '-%s' % self.repo_branch)
+        else: # should be release mode
+            if not self._code_downloaded:
+                raise RuntimeError("trying to determine release package dirname before code was downloaded")
+            zip_path = self._downloaded_file
+            if not zip_path.exists():
+                raise RuntimeError("no zip file at zip path %s" % zip_path)
+            import zipfile
+            # zip file handler  
+            zip = zipfile.ZipFile(zip_path)
+            # list available files in the container
+            repodir = zip.namelist()[0]
+            zip.close()
+            pck_dir = pathlib.Path(self.build_dir) / repodir
+        self._pck_dir = pck_dir
+        return pck_dir
+    
+    def download_url(self):
+        # make and return download url from info in the object
+        from urllib.parse import urljoin
+        if self.download_mode == 'snapshot':
+            snapshot_path = '%s/archive/refs/heads/%s.zip' % (self.repo_name,self.repo_branch)
+            github_prefix = 'https://github.com/'
+            repo_url = urljoin(github_prefix, snapshot_path)
+            return repo_url
+        elif self.download_mode == 'release':
+            import requests
+            import pathlib
+
+            def get_release_url(repository,release_tag):
+                release_url = "https://api.github.com/repos/{}/releases/tags/{}".format(repository,release_tag)
+                return release_url
+
+            def get_github_response(repository,release_tag):
+                import requests
+                release_url = get_release_url(repository,release_tag)
+                release_response = requests.get(release_url)
+                if release_response.ok:
+                    return release_response
+                else:
+                    if release_response.reason == 'Not Found':
+                        warn("release %s not found" % release_tag)
+                    else:
+                        warn("requesting release %s not successful, reason: %s" %(release_tag,release_response.reason))
+                    return None
+
+            response = get_github_response(self.repo_name, self.release)
+            if response is None:
+                raise RuntimeError("could not retrive release with of %s with release tag %s; is tag correct?" %
+                                   (self.repo_name, self.release))
+            zipurl = response.json().get('zipball_url')
+            if zipurl is None:
+                raise RuntimeError("could not retrieve zip url for release %s" % release)
+            return zipurl
+        else:
+            return None # this should be git mode
+
+    def download(self):
+        if self.download_mode == 'snapshot' or self.download_mode == 'release':
+            import requests
+            url = self.download_url()
+            downloaded_file = pathlib.Path(self.build_dir) / ("%s.zip" % repobasename(self.repo_name))
+            downloaded_file.write_bytes(requests.get(url).content)
+            self._downloaded_file = downloaded_file
+            import shutil
+            shutil.unpack_archive(downloaded_file,self.build_dir)
+        else:
+            # git based download
+            def mk_git_url(repo):
+                from urllib.parse import urljoin
+                return urljoin('https://github.com/', "%s.git" % repo)
+
+            import git
+
+            repo = git.Repo.clone_from(mk_git_url(self.repo_name),
+                                       self.package_dir_name(),
+                                       branch=self.repo_branch)
+
+        self._code_downloaded = True
+        
+    def build_and_install(self):
+        ret = run_cmd_in_environment(self._install_cmd(), self.target_environment, cwd=self.package_dir_name())
+        logging.info("building %s..." % repobasename(self.repo_name))
+        logging.info(ret)
+
+    def postinstall(self):
+        cmd = self._post_install_cmd()
+        if cmd is None:
+            return
+        ret = run_cmd_in_environment(cmd, self.target_environment, cwd=self.package_dir_name())
+        logging.info("running postinstall command for %s..." % repobasename(self.repo_name))
+        logging.info(ret)
+ 
+
 class PymeBuild(object):
     def __init__(self,pythonver,build_dir='build-test',condacmd='conda',
                  environment=None, mk_build_dir=True, start_log=True,
@@ -402,7 +374,7 @@ class PymeBuild(object):
                  strict_conda_forge_channel=True, dry_run=False,
                  xtra_packages=None, logfile=None,
                  pyme_release=None,pymex_release=None,
-                 pyme_build_meson=False):
+                 ):
         self.suffix = suffix
         self.pythonver = pythonver
         if self.suffix is None:
@@ -431,8 +403,7 @@ class PymeBuild(object):
         self.pymex_repo=pymex_repo
         self.pymex_branch=pymex_branch
         self.pymex_release=pymex_release
-        self.pyme_build_meson=pyme_build_meson
-        
+
         self.use_git = use_git
 
         self.strict_conda_forge_channel = strict_conda_forge_channel
@@ -447,6 +418,17 @@ class PymeBuild(object):
 
         self.register_environment()
 
+        self.pyme_src = SourceInfo(self.env,build_dir=self.build_dir,repo_name=self.pyme_repo,
+                                   from_git=self.use_git,branch=self.pyme_branch,release=self.pyme_release,
+                                   install_test_file='meson.build',post_install_cmd=None)
+        self.pymex_src = SourceInfo(self.env,build_dir=self.build_dir,repo_name=self.pymex_repo,
+                                    from_git=self.use_git,branch=self.pymex_branch,release=self.pymex_release,
+                                    install_test_file='pyproject.toml',
+                                    post_install_cmd={
+                                        'new' : 'pymex_install_plugins',
+                                        'old' : 'python install_plugins.py',
+                                    }) # arguments derived from pbld
+    
     def check_consistency(self):
         if self.pyme_release is not None and self.use_git:
             raise RuntimeError("you cannot choose to install a release AND use git mode; please choose either")
@@ -527,7 +509,6 @@ class PymeBuild(object):
         pyme_repo={self.pyme_repo}, pyme_branch={self.pyme_branch},
         pymex_repo={self.pymex_repo}, pymex_branch={self.pymex_branch},
         pyme_release={self.pyme_release},pymex_release={self.pymex_release},
-        pyme_build_meson={self.pyme_build_meson},
         with_recipes={self.with_recipes}, logging={self.logging}, logfile={self.logfile},
         use_git={self.use_git}, suffix={self.suffix},
         strict_conda_forge_channel={self.strict_conda_forge_channel}, dry_run={self.dry_run},

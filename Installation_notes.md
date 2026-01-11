@@ -2,6 +2,21 @@
 
 Here we record in a loose fashion some observations, issues and possible fixes for PYME installation with `PYME-test-env` as we observe it. Entries should be dated and newest should be at the top.
 
+## 11.1.26
+
+The PYME build has been modernised to be meson based and can now build with more recent `setuptools`, `numpy` and `Python` versions.
+
+During building it is recognized if a meson-based install is possible by checking the source files and things should be chosen without the user needing to do anything specific.
+
+Builds with Python 3.10 to 3.13 should succeed, one can also choose pip based installs without any source building, see also the main README and [current-commands.md](current-commands.md) for suggested command sequences.
+
+Notably, a 3.13 currently (as of the date above) needs a small patch that is included in the `meson-fixes` branch, which is recommended for all builds from source as it also contains some patches for "editable installs" which we use by default. See the example for Python 3.13 below, similar for other Pythons from 3.10 onwards (3.9 is now beyond end-of-live and not recommended for new installs).
+
+```shell
+python mk_pyme_env.py --python 3.13 -c conda --pyme-repo=csoeller/python-microscopy --pyme-branch=meson-fixes 
+```
+
+
 ## 4.6.25
 
 We keep pinning `setuptools<=73` and this will likely remain until the build

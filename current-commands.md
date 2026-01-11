@@ -2,10 +2,47 @@
 
 General assumptions:
 
-- we build with the git option (`--use-git`), this requires a working git installed, especially on windows. This is explained in the docs.
+- we often build with the git option (`--use-git`), this requires a working git installed, especially on windows. This is explained in the docs.
 - on windows we generally build with `mamba` using the miniforge installation, this is also explained in the docs; on win `mamba` is significantly faster than using `conda`
 - the `--suffix` option can generally be set to something convenient to tag the created environment so you know what is was made for etc
 - some commands mention the `pymenf` package/option; this is part of a non-free package and lines mentioning this can be safely ignored by those not having access
+
+## install with older matplotlib
+
+```shell
+# --matplotlib-version-force is a temporary switch
+python mk_pyme_env.py --python 3.11 -c conda --suffix=_ms2 --pyme-repo=csoeller/python-microscopy --pyme-branch=meson-fixes --matplotlib-version-force
+```
+
+## install using pip install from PyPI
+
+This one just makes a new environment with the chosen Python version and then installs PYME and PYME-extra from PyPi, no actual build required. Easiest install by far.
+
+```shell
+python mk_pyme_env.py --python=3.12 --suffix=_pip --pip-pyme --pip-pymex
+```
+
+## install with Python 3.13 and use the relevant PYME fixes 
+
+Currently Python 3.13 installs need a `PYME` fix that is as yet only available via our fork (PR to official `PYME` has been made).
+
+```shell
+python mk_pyme_env.py --python 3.13 -c conda --pyme-repo=csoeller/python-microscopy --pyme-branch=meson-fixes 
+```
+
+## install from latest snapshots
+
+```shell
+python mk_pyme_env.py --python 3.11 -c conda --suffix=_sn --pyme-repo=csoeller/python-microscopy --pyme-branch=meson-fixes
+```
+
+## install with explicitly released versions
+
+This one we use with publications to install from specific releases.
+
+```shell
+python mk_pyme_env.py --python 3.10 -e test-pyme-natcomm25 --pymex-release 25.11.29 --pyme-release 25.05.16 --buildstem b-nctest --pyme-repo csoeller/python-microscopy
+```
 
 ## python 3.10
 

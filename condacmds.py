@@ -218,7 +218,7 @@ def repobasename(repo):
 
 class SourceInfo(object):
     def __init__(self,environment,build_dir,repo_name,from_git=False,branch='master',release=None,
-                 install_test_file=None,post_install_cmd=None):
+                 install_test_file=None,post_install_cmd=None,pip_install=False):
         self.target_environment = environment
         self.build_dir = build_dir
         self.repo_name = repo_name
@@ -227,12 +227,15 @@ class SourceInfo(object):
         self.release = release
         self.post_install_cmd = post_install_cmd
         self.install_test_file = install_test_file
+        self.pip_install=pip_install
         
         self._code_downloaded = False
         self._downloaded_file = None
         self._pck_dir = None
 
-        if self.release is not None:
+        if self.pip_install:
+            self.download_mode = 'None'
+        elif self.release is not None:
             self.download_mode = 'release'
         elif self.from_git:
             self.download_mode = 'git'
@@ -240,6 +243,8 @@ class SourceInfo(object):
             self.download_mode = 'snapshot'
 
     def new_install_type(self):
+        if self.pip_install:
+            return True
         if self.install_test_file is None:
             return False
         if not self._code_downloaded:
@@ -358,7 +363,11 @@ class SourceInfo(object):
         cmd = self._post_install_cmd()
         if cmd is None:
             return
-        ret = run_cmd_in_environment(cmd, self.target_environment, cwd=self.package_dir_name())
+        if self.download_mode == 'None': # deliberately not Python None
+            wd = None
+        else:
+            wd = self.package_dir_name()
+        ret = run_cmd_in_environment(cmd, self.target_environment, cwd=wd)
         logging.info("running postinstall command for %s..." % repobasename(self.repo_name))
         logging.info(ret)
  
@@ -374,6 +383,7 @@ class PymeBuild(object):
                  strict_conda_forge_channel=True, dry_run=False,
                  xtra_packages=None, logfile=None,
                  pyme_release=None,pymex_release=None,
+                 pyme_pip=False,pymex_pip=False,
                  ):
         self.suffix = suffix
         self.pythonver = pythonver
@@ -400,10 +410,12 @@ class PymeBuild(object):
         self.pyme_repo=pyme_repo
         self.pyme_branch=pyme_branch
         self.pyme_release=pyme_release
+        self.pyme_pip=pyme_pip
         self.pymex_repo=pymex_repo
         self.pymex_branch=pymex_branch
         self.pymex_release=pymex_release
-
+        self.pymex_pip=pymex_pip
+        
         self.use_git = use_git
 
         self.strict_conda_forge_channel = strict_conda_forge_channel
@@ -420,20 +432,25 @@ class PymeBuild(object):
 
         self.pyme_src = SourceInfo(self.env,build_dir=self.build_dir,repo_name=self.pyme_repo,
                                    from_git=self.use_git,branch=self.pyme_branch,release=self.pyme_release,
-                                   install_test_file='meson.build',post_install_cmd=None)
+                                   install_test_file='meson.build',post_install_cmd=None,pip_install=self.pyme_pip)
         self.pymex_src = SourceInfo(self.env,build_dir=self.build_dir,repo_name=self.pymex_repo,
                                     from_git=self.use_git,branch=self.pymex_branch,release=self.pymex_release,
                                     install_test_file='pyproject.toml',
                                     post_install_cmd={
                                         'new' : 'pymex_install_plugins',
                                         'old' : 'python install_plugins.py',
-                                    }) # arguments derived from pbld
+                                    },
+                                    pip_install=self.pymex_pip) # arguments derived from pbld
     
     def check_consistency(self):
         if self.pyme_release is not None and self.use_git:
             raise RuntimeError("you cannot choose to install a release AND use git mode; please choose either")
         if self.pymex_release is not None and self.use_git:
             raise RuntimeError("you cannot choose to install a release AND use git mode; please choose either")
+        if self.pyme_release is not None and self.pyme_pip:
+            raise RuntimeError("you cannot choose to install a release AND install PYME via pip; please choose either")
+        if self.pymex_release is not None and self.pymex_pip:
+            raise RuntimeError("you cannot choose to install a release AND install PYME-extra via pip; please choose either")
 
     def setup_logging(self,logfile=None):
         if self.logging:
@@ -509,6 +526,7 @@ class PymeBuild(object):
         pyme_repo={self.pyme_repo}, pyme_branch={self.pyme_branch},
         pymex_repo={self.pymex_repo}, pymex_branch={self.pymex_branch},
         pyme_release={self.pyme_release},pymex_release={self.pymex_release},
+        pyme_pip={self.pyme_pip},pymex_pip={self.pymex_pip},
         with_recipes={self.with_recipes}, logging={self.logging}, logfile={self.logfile},
         use_git={self.use_git}, suffix={self.suffix},
         strict_conda_forge_channel={self.strict_conda_forge_channel}, dry_run={self.dry_run},

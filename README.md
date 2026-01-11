@@ -8,6 +8,9 @@ We have tested the scripts with windows and mac installs (including `arm64`) and
 
 We make extensive use of retrieving package dependencies from the `conda-forge` channel and this appears to allow more recent python versions to be used for installation (tested so far up to python 3.10, 3.11 installs seem to build ok but need more testing, 3.12 installs are not yet possible since they require a replacement of the current PYME build system, see also recent [installation notes](Installation_notes.md)).
 
+**Note**: some typical current commands are listed in the file [current-commands.md](current-commands.md).
+
+
 ## Installation notes
 
 PYME builds with PYME-test-env can run into issues with certain arguments (e.g. recent python versions). For recent issues and possible resolutions consult the [installation notes](Installation_notes.md). Be sure to check these notes when you run into issues!
@@ -115,10 +118,11 @@ which should print the usage info, currently showing something like:
 ```
 usage: mk_pyme_env.py [-h] [--python PYTHON] [--buildstem BUILDSTEM] [--suffix SUFFIX] [-c {conda,mamba}]
                       [-e ENVIRONMENT] [--recipes] [--pyme-repo PYME_REPO] [--pyme-branch PYME_BRANCH]
-                      [--pymex-repo PYMEX_REPO] [--pymex-branch PYMEX_BRANCH] [--no-pymex] [--no-pyme-depends]
-                      [--pyme-release PYME_RELEASE] [--pymex-release PYMEX_RELEASE] [--use-git]
-                      [--no-strict-channel] [--dry-run] [-x XTRA_PACKAGES [XTRA_PACKAGES ...]]
-                      [--matplotlib-numpy-latest]
+                      [--pymex-repo PYMEX_REPO] [--pymex-branch PYMEX_BRANCH] [--no-pymex] [--no-pyme-build]
+                      [--no-pyme-depends] [--pyme-release PYME_RELEASE] [--pymex-release PYMEX_RELEASE] [--pip-pyme]
+                      [--pip-pymex] [--use-git] [--no-strict-channel] [--dry-run]
+                      [-x XTRA_PACKAGES [XTRA_PACKAGES ...]] [--matplotlib-numpy-latest] [--matplotlib-version-force]
+                      [--setuptools-latest]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -140,18 +144,24 @@ optional arguments:
   --pymex-branch PYMEX_BRANCH
                         branch of PYME-extra to use in build; defaults to master
   --no-pymex            omit downloading and installing PYME-extra
+  --no-pyme-build       omit building and installing PYME
   --no-pyme-depends     install from package list rather than using pyme-depends
   --pyme-release PYME_RELEASE
                         release tag for PYME release to build; mutually exclusive with --use-git option
   --pymex-release PYMEX_RELEASE
                         release tag for PYME-extra release to build; mutually exclusive with --use-git option
+  --pip-pyme            install python-microscopy via pip and not from source
+  --pip-pymex           install PYME-extra via pip and not from source
   --use-git             clone git repo locally rather than just downloading snapshot
   --no-strict-channel   enforce strict adherance to conda-forge channel
   --dry-run             just process options but do not run any commands
   -x XTRA_PACKAGES [XTRA_PACKAGES ...], --xtra-packages XTRA_PACKAGES [XTRA_PACKAGES ...]
                         extra packages to install into the new environment
   --matplotlib-numpy-latest
-                        instruct conda to use latest matplolib and numpy; currently used for testing of numpy>=2
+                        instruct conda to use latest matplolib and numpy; currently used for testing of numpy>=2 and
+                        PYME meson build
+  --matplotlib-version-force
+  --setuptools-latest   instruct conda to use latest setuptools; currently used for testing PYME meson build
 ```
 
 Basic usage to build an environment might look like
@@ -170,6 +180,19 @@ If you want a setup for production use you might use (adapt the python version t
 	python mk_pyme_env.py --python 3.7 -c mamba -e pyme-py-3.7-v1 --recipes
 
 which should build an environment named `pyme-py-3.7-v1` and install the included custom recipes for MINFLUX processing so that they can be selected from the MINFLUX menu of `PYMEVisualize` (AKA `visgui`).
+
+**Note**: the following options are not yet covered in the docs below:
+
+```
+  --pip-pyme            install python-microscopy via pip and not from source
+  --pip-pymex           install PYME-extra via pip and not from source
+  --matplotlib-numpy-latest
+                        instruct conda to use latest matplolib and numpy; currently used for testing of numpy>=2 and
+                        PYME meson build
+  --matplotlib-version-force
+  --setuptools-latest   instruct conda to use latest setuptools; currently used for testing PYME meson build
+
+```
 
 #### Using the new environment
 

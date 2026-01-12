@@ -11,7 +11,7 @@ commandline = " ".join(sys.argv)
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--python',default='3.9',
+parser.add_argument('--python',default='3.10',
                     help='specify the python version for the new environment')
 parser.add_argument('--buildstem',default='build-test',
                     help='stem for the name of the build directory')
@@ -29,12 +29,22 @@ parser.add_argument('--dry-run',action="store_true",
                     help='just process options but do not run any commands')
 parser.add_argument('-x','--xtra-packages', action="extend", nargs="+", type=str,
                     help='extra packages to install into the new environment')
+parser.add_argument('--list-xtra-sets', action="store_true",
+                    help='list known extra package sets')
 parser.add_argument('--pymenf',default=None,
                     help='location of pymenf repo snapshot zip archive')
 parser.add_argument('--pymesite',default=None,
                     help='location where to build pyme site repo, default None, standard=build_dir, other=path_where _to_build')
 parser.add_argument('--xtra-sets', action="extend", nargs="+", type=str,
                     help='extra package sets to install into the new environment')
+parser.add_argument('--pymex-repo',default='csoeller/PYME-extra',
+                    help='github repository name of PYME-extra; defaults to csoeller/PYME-extra')
+parser.add_argument('--pymex-branch',default='master',
+                    help='branch of PYME-extra to use in build; defaults to master')
+parser.add_argument('--pymex-release',default=None,
+                    help='release tag for PYME-extra release to build; mutually exclusive with --use-git option')
+parser.add_argument('--pip-pymex',action="store_true",
+                    help='install PYME-extra via pip and not from source')
 
 args = parser.parse_args()
 
@@ -72,31 +82,36 @@ def install_pyme_siteconfig(build_dir,environment):
     # possibly into a dir outside the otherwise general build dir?
     pass
 
-def install_pyme_extra(environment,build_dir,download_mode):
-    from condacmds import download_pyme_extra, build_pyme_extra, pyme_extra_install_plugins
+def install_pyme_extra(pbld):
     # build/install pyme-extra
     # pyme-extra dependencies
     from packagesettings import Pymex_conda_packages, Pymex_pip_packages
 
-    result = cmds.conda_install(environment, Pymex_conda_packages, channels = ['conda-forge'])
-    logging.info(result)
+    if not pbld.pip_install:
+        result = cmds.conda_install(pbld.env, Pymex_conda_packages, channels = ['conda-forge'])
+        logging.info(result)
 
-    result = cmds.pip_install(environment, Pymex_pip_packages)
-    logging.info(result)
+        result = cmds.pip_install(pbld.env, Pymex_pip_packages)
+        logging.info(result)
 
-    download_pyme_extra(build_dir=build_dir,mode=download_mode)
-    build_pyme_extra(environment,build_dir=build_dir)
-    pyme_extra_install_plugins(environment,build_dir=build_dir)
+    pbld.pymex_src.download()
+    pbld.pymex_src.build_and_install()
 
 def check_xtra_packages(pack):
     if pack not in extrapackages:
             raise RuntimeError("asking to install meta-package %s which is not in the list of known metapackages %s" %
                                (pack, extrapackages.keys()))
+def list_xtra_sets():
+    import pprint
+    print("known extra package sets...")
+    pprint.pprint(extrapackages)
 
-def install_xtra_packages(environment,packages,build_dir,download_mode):
+
+def install_xtra_packages(pbld,packages):
+    environment = pbld.env
     for pack in packages:
         if pack == 'PYME-extra':
-            install_pyme_extra(environment,build_dir,download_mode)
+            install_pyme_extra(pbld)
         else:
             check_xtra_packages(pack)
             condapacks = extrapackages[pack].get('conda',None)
@@ -117,6 +132,8 @@ conda_flags = '--override-channels -c conda-forge' # this is aimed at sticking t
 # conda config --env --set channel_priority strict
 # conda config --env --add channels conda-forge
 
+dry_run = args.dry_run or args.list_xtra_sets # in those two cases do not create logfile etc
+
 # # this makes methods/attributes for the standard parameters available
 # # also does any setup stuff, e.g. create build_dir, setup logging etc
 pbld = cmds.PymeBuild(pythonver=args.python,
@@ -124,22 +141,23 @@ pbld = cmds.PymeBuild(pythonver=args.python,
                       condacmd=args.condacmd,
                       environment=args.environment,
                       use_git=args.use_git,suffix=args.suffix,
+                      pymex_repo=args.pymex_repo, pymex_branch=args.pymex_branch,
+                      pymex_release=args.pymex_release,pymex_pip=args.pip_pymex,
                       strict_conda_forge_channel=not args.no_strict_channel,
-                      dry_run=args.dry_run,xtra_packages=args.xtra_packages,
+                      dry_run=dry_run,xtra_packages=args.xtra_packages,
                       mk_build_dir=False,logfile="extra-stuff-$environment$.log")
 
 environment = pbld.env
 build_dir = pbld.build_dir
 
-if pbld.use_git:
-    download_mode = 'git'
-else:
-    download_mode = 'snapshot'
-
-
 logging.info("Command called as\n")
 logging.info(commandline + "\n")
 
+if args.list_xtra_sets:
+    list_xtra_sets()
+    import sys
+    sys.exit(0)
+    
 if args.dry_run: # for now we stop here
     logging.info("dry run, aborting...")
     import sys
@@ -158,7 +176,7 @@ if args.pymenf is not None:
 
 if args.xtra_sets is not None and len(args.xtra_sets) > 0:
     # check_xtra_packages(xset)
-    install_xtra_packages(environment,args.xtra_sets,build_dir,download_mode)
+    install_xtra_packages(pbld,args.xtra_sets)
 
 # 5. any extra packages although in future this will be preferable via mk_extra_stuff
 if pbld.xtra_packages is not None and len(pbld.xtra_packages) > 0:

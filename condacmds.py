@@ -332,6 +332,9 @@ class SourceInfo(object):
             return None # this should be git mode
 
     def download(self):
+        if self.download_mode == 'None':
+           logger.info("download mode is 'None' - not downloading anything")
+           return
         if self.download_mode == 'snapshot' or self.download_mode == 'release':
             import requests
             url = self.download_url()
@@ -371,6 +374,21 @@ class SourceInfo(object):
         logging.info("running postinstall command for %s..." % repobasename(self.repo_name))
         logging.info(ret)
  
+    def __str__(self):
+        from textwrap import indent
+        return indent(f"""
+        src object:
+        environment={self.target_environment},
+        build_dir={self.build_dir}, 
+        repo_name={self.repo_name},
+        branch={self.repo_branch},
+        from_git={self.from_git},
+        release={self.release},
+        post_install_cmd={self.post_install_cmd},
+        install_test_file={self.install_test_file},
+        pip_install={self.pip_install},
+        download_mode={self.download_mode},
+        ""","\t")
 
 class PymeBuild(object):
     def __init__(self,pythonver,build_dir='build-test',condacmd='conda',
@@ -425,11 +443,6 @@ class PymeBuild(object):
         if mk_build_dir and not dry_run:
             self.build_dir.mkdir(exist_ok=True)            
 
-        self.logging = start_log
-        self.setup_logging(logfile)
-
-        self.register_environment()
-
         self.pyme_src = SourceInfo(self.env,build_dir=self.build_dir,repo_name=self.pyme_repo,
                                    from_git=self.use_git,branch=self.pyme_branch,release=self.pyme_release,
                                    install_test_file='meson.build',post_install_cmd=None,pip_install=self.pyme_pip)
@@ -441,6 +454,13 @@ class PymeBuild(object):
                                         'old' : 'python install_plugins.py',
                                     },
                                     pip_install=self.pymex_pip) # arguments derived from pbld
+
+        self.logging = start_log
+        self.setup_logging(logfile)
+
+        if not dry_run:
+            self.register_environment()
+
     
     def check_consistency(self):
         if self.pyme_release is not None and self.use_git:
@@ -530,5 +550,7 @@ class PymeBuild(object):
         with_recipes={self.with_recipes}, logging={self.logging}, logfile={self.logfile},
         use_git={self.use_git}, suffix={self.suffix},
         strict_conda_forge_channel={self.strict_conda_forge_channel}, dry_run={self.dry_run},
-        xtra_packages={self.xtra_packages}
+        xtra_packages={self.xtra_packages},
+        pyme_src={self.pyme_src},
+        pymex_src={self.pymex_src},
         """)

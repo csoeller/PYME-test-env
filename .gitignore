@@ -158,3 +158,5 @@ getreleases.py
 *.patch
 
 _old_repo_download_build_code.py
+
+test-material-ignore-for-git/

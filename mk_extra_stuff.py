@@ -33,8 +33,9 @@ parser.add_argument('--list-xtra-sets', action="store_true",
                     help='list known extra package sets')
 parser.add_argument('--pymenf',default=None,
                     help='location of pymenf repo snapshot zip archive')
-parser.add_argument('--pymesite',default=None,
-                    help='location where to build pyme site repo, default None, standard=build_dir, other=path_where _to_build')
+# not implemented yet
+#parser.add_argument('--pymesite',default=None,
+#                    help='location where to build pyme site repo, default None, standard=build_dir, other=path_where _to_build')
 parser.add_argument('--xtra-sets', action="extend", nargs="+", type=str,
                     help='extra package sets to install into the new environment')
 parser.add_argument('--pymex-repo',default='csoeller/PYME-extra',
@@ -69,14 +70,19 @@ def install_pymenf(ziplocation,build_dir,environment):
     # we need a zip file with pymenf option for installation
     # unpack into suitable place and then build
     # and register recipe modules
-    zippath = Path(ziplocation)
-    if not zippath.exists():
-        raise RuntimeError("cannot find pymenf zip archive '%s', terminating..." % zippath)
-    cmds.unpack_snapshot(zippath,build_dir)
 
-    cmds.build_repo_generic(environment,'pymenf',build_dir,branch='master')
-    cmds.repo_install_plugins_generic(environment,build_dir,'pymenf','master')
-
+    pymenf_src = cmds.SourceInfo(environment,build_dir,
+                 local_file=ziplocation,
+                 install_test_file='meson.build',
+                 post_install_cmd={
+                     'new' : 'python install_plugins.py', # this is fine because we do not work with pip at this stage
+                     'old' : 'python install_plugins.py',
+                 },)
+    
+    pymenf_src.download() # the download is here really just an unpack of the zip and checking
+    pymenf_src.build_and_install()
+    pymenf_src.postinstall()
+    
 def install_pyme_siteconfig(build_dir,environment):
     # install the siteconfig repo
     # possibly into a dir outside the otherwise general build dir?

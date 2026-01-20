@@ -84,7 +84,8 @@ yaml_data = cmds.envfile(args.environment).read_text()
 pb = PymeBuild.from_yaml(yaml_data)
 print(pb)
 
-if args.dry_run: # for now we stop here
+if True or args.dry_run: # for now we stop here
     logging.info("dry run, aborting...")
     import sys
     sys.exit(0)
+

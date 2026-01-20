@@ -217,8 +217,8 @@ def repobasename(repo):
     return repo.split('/')[-1]
 
 class SourceInfo(object):
-    def __init__(self,environment,build_dir,repo_name,from_git=False,branch='master',release=None,
-                 install_test_file=None,post_install_cmd=None,pip_install=False):
+    def __init__(self,environment,build_dir,repo_name=None,from_git=False,branch='master',release=None,
+                 local_file=None,install_test_file=None,post_install_cmd=None,pip_install=False):
         self.target_environment = environment
         self.build_dir = build_dir
         self.repo_name = repo_name
@@ -227,7 +227,8 @@ class SourceInfo(object):
         self.release = release
         self.post_install_cmd = post_install_cmd
         self.install_test_file = install_test_file
-        self.pip_install=pip_install
+        self.pip_install = pip_install
+        self.local_file = local_file
         
         self._code_downloaded = False
         self._downloaded_file = None
@@ -235,6 +236,8 @@ class SourceInfo(object):
 
         if self.pip_install:
             self.download_mode = 'None'
+        elif self.local_file is not None:
+            self.download_mode = 'local_file'
         elif self.release is not None:
             self.download_mode = 'release'
         elif self.from_git:
@@ -275,7 +278,7 @@ class SourceInfo(object):
         
         if self.download_mode == 'snapshot' or self.download_mode == 'git':
             pck_dir = pathlib.Path(self.build_dir) / (repobasename(self.repo_name) + '-%s' % self.repo_branch)
-        else: # should be release mode
+        else: # should be release mode or local file
             if not self._code_downloaded:
                 raise RuntimeError("trying to determine release package dirname before code was downloaded")
             zip_path = self._downloaded_file
@@ -335,7 +338,13 @@ class SourceInfo(object):
         if self.download_mode == 'None':
            logger.info("download mode is 'None' - not downloading anything")
            return
-        if self.download_mode == 'snapshot' or self.download_mode == 'release':
+        if self.download_mode == 'local_file':
+           logger.info("download mode is 'local_file' - checking file exists and unpacking")
+           downloaded_file = pathlib.Path(self.local_file)
+           self._downloaded_file = downloaded_file
+           import shutil
+           shutil.unpack_archive(downloaded_file,self.build_dir)
+        elif self.download_mode == 'snapshot' or self.download_mode == 'release':
             import requests
             url = self.download_url()
             downloaded_file = pathlib.Path(self.build_dir) / ("%s.zip" % repobasename(self.repo_name))
@@ -359,7 +368,7 @@ class SourceInfo(object):
         
     def build_and_install(self):
         ret = run_cmd_in_environment(self._install_cmd(), self.target_environment, cwd=self.package_dir_name())
-        logging.info("building %s..." % repobasename(self.repo_name))
+        logging.info("building %s..." % self.package_dir_name().name)
         logging.info(ret)
 
     def postinstall(self):
@@ -371,7 +380,7 @@ class SourceInfo(object):
         else:
             wd = self.package_dir_name()
         ret = run_cmd_in_environment(cmd, self.target_environment, cwd=wd)
-        logging.info("running postinstall command for %s..." % repobasename(self.repo_name))
+        logging.info("running postinstall command for %s..." % self.package_dir_name().name)
         logging.info(ret)
  
     def __str__(self):
@@ -388,8 +397,17 @@ class SourceInfo(object):
         install_test_file={self.install_test_file},
         pip_install={self.pip_install},
         download_mode={self.download_mode},
+        local_file={self.local_file},
         ""","\t")
 
+
+PBLD_REQ_ATTRIBUTES = '''
+        pythonver env build_dir condacmd with_pyme_depends with_pymex
+        pyme_repo pyme_branch pymex_repo pymex_branch pyme_release pymex_release
+        pyme_pip pymex_pip with_recipes logging logfile use_git suffix
+        strict_conda_forge_channel dry_run xtra_packages pyme_src pymex_src local_file
+'''.split()
+        
 class PymeBuild(object):
     def __init__(self,pythonver,build_dir='build-test',condacmd='conda',
                  environment=None, mk_build_dir=True, start_log=True,
@@ -443,6 +461,16 @@ class PymeBuild(object):
         if mk_build_dir and not dry_run:
             self.build_dir.mkdir(exist_ok=True)            
 
+        self.mk_src_attributes()
+
+        self.logging = start_log
+        self.setup_logging(logfile)
+
+        if not dry_run:
+            self.register_environment()
+
+
+    def mk_src_attributes(self):
         self.pyme_src = SourceInfo(self.env,build_dir=self.build_dir,repo_name=self.pyme_repo,
                                    from_git=self.use_git,branch=self.pyme_branch,release=self.pyme_release,
                                    install_test_file='meson.build',post_install_cmd=None,pip_install=self.pyme_pip)
@@ -455,13 +483,6 @@ class PymeBuild(object):
                                     },
                                     pip_install=self.pymex_pip) # arguments derived from pbld
 
-        self.logging = start_log
-        self.setup_logging(logfile)
-
-        if not dry_run:
-            self.register_environment()
-
-    
     def check_consistency(self):
         if self.pyme_release is not None and self.use_git:
             raise RuntimeError("you cannot choose to install a release AND use git mode; please choose either")
@@ -515,7 +536,11 @@ class PymeBuild(object):
     def to_yaml(self):
         import yaml
         settings = {}
-        attr_names=[a for a in dir(self) if not a.startswith('_') and not callable(getattr(self, a))]
+        # exclude
+        #    private attributes (start with underscore)
+        #    methods
+        #    SourceInfo attributes (these are derived from other args, so should be ok)
+        attr_names=[a for a in dir(self) if not a.startswith('_') and not callable(getattr(self, a)) and not isinstance(a,SourceInfo)]
         for a in attr_names:
             attr = getattr(self,a)
             if isinstance(attr,Path):
@@ -535,8 +560,12 @@ class PymeBuild(object):
             else:
                 setattr(obj,a,settings[a])
         obj._settings = settings
+        for attr in PBLD_REQ_ATTRIBUTES:
+            if attr not in dir(obj):
+                setattr(obj,attr,None)
+        obj.mk_src_attributes()
         return obj
-    
+
     def __str__(self):
         from textwrap import dedent
         return dedent(f"""

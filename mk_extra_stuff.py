@@ -102,6 +102,7 @@ def install_pyme_extra(pbld):
 
     pbld.pymex_src.download()
     pbld.pymex_src.build_and_install()
+    pbld.pymex_src.postinstall()
 
 def check_xtra_packages(pack):
     if pack not in extrapackages:

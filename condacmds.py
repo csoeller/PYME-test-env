@@ -560,6 +560,7 @@ class PymeBuild(object):
             else:
                 setattr(obj,a,settings[a])
         obj._settings = settings
+        # now fill in still missing atributes with None
         for attr in PBLD_REQ_ATTRIBUTES:
             if attr not in dir(obj):
                 setattr(obj,attr,None)

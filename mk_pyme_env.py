@@ -55,11 +55,6 @@ parser.add_argument('--dry-run',action="store_true",
                     help='just process options but do not run any commands')
 parser.add_argument('-x','--xtra-packages', action="extend", nargs="+", type=str,
                     help='extra packages to install into the new environment')
-parser.add_argument('--matplotlib-numpy-latest',action="store_true",
-                    help='instruct conda to use latest matplolib and numpy; currently used for testing of numpy>=2 and PYME meson build')
-parser.add_argument('--matplotlib-version-force',action="store_true") # temporary placeholder until better solution found
-parser.add_argument('--setuptools-latest',action="store_true",
-                    help='instruct conda to use latest setuptools; currently used for testing PYME meson build')
 # parser.add_argument('--pyme-build-meson',action="store_true",
 #                     help='build pyme with meson (new build method)')
 
@@ -185,26 +180,17 @@ if not pbld.pyme_pip:
         pbld.pymex_src.download()
 
     newstyle_build = pbld.pyme_src.new_install_type()
-    if pbld.with_pymex:
-        newstyle_build = newstyle_build or pbld.pymex_src.new_install_type()
 
-    if (args.matplotlib_numpy_latest or newstyle_build) and not args.matplotlib_version_force:
+    if newstyle_build:
         matplotlib = 'matplotlib'
-    elif args.matplotlib_numpy_latest:
-        matplotlib = 'matplotlib'
-    elif not prepy3_10: # we are now testing if latest PYME can deal with more recent matplotlib
-        matplotlib = 'matplotlib<=3.8'
-    else:
-        matplotlib = 'matplotlib<=3.6'
-
-    if args.matplotlib_numpy_latest or newstyle_build:
         numpy = 'numpy'
-    else:
-        numpy = 'numpy<2'
-
-    if args.setuptools_latest or newstyle_build:
         setuptools = 'setuptools'
     else:
+        if not prepy3_10: # we are now testing if latest PYME can deal with more recent matplotlib
+            matplotlib = 'matplotlib<=3.8'
+        else:
+            matplotlib = 'matplotlib<=3.6'
+        numpy = 'numpy<2'
         setuptools = 'setuptools<=73'
 
     if platform.machine() != 'arm64' and prepy3_10 and pbld.with_pyme_depends:
@@ -270,6 +256,11 @@ if pbld.with_pymex:
 
         result = cmds.pip_install(environment, Pymex_pip_packages)
         logging.info(result)
+
+        if not pbld.pyme_src.new_install_type() and pbld.pymex_src.new_install_type():
+            ret = cmds.conda_install(environment, 'python-build meson meson-python'.split(), channels = ['conda-forge'])
+            logging.info("new type PYMEx install but old-style PYME install, installing meson build dependencies...")
+            logging.info(ret)
 
         pbld.pymex_src.build_and_install()
     else:

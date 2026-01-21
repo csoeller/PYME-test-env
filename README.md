@@ -157,11 +157,6 @@ optional arguments:
   --dry-run             just process options but do not run any commands
   -x XTRA_PACKAGES [XTRA_PACKAGES ...], --xtra-packages XTRA_PACKAGES [XTRA_PACKAGES ...]
                         extra packages to install into the new environment
-  --matplotlib-numpy-latest
-                        instruct conda to use latest matplolib and numpy; currently used for testing of numpy>=2 and
-                        PYME meson build
-  --matplotlib-version-force
-  --setuptools-latest   instruct conda to use latest setuptools; currently used for testing PYME meson build
 ```
 
 Basic usage to build an environment might look like
@@ -186,12 +181,6 @@ which should build an environment named `pyme-py-3.7-v1` and install the include
 ```
   --pip-pyme            install python-microscopy via pip and not from source
   --pip-pymex           install PYME-extra via pip and not from source
-  --matplotlib-numpy-latest
-                        instruct conda to use latest matplolib and numpy; currently used for testing of numpy>=2 and
-                        PYME meson build
-  --matplotlib-version-force
-  --setuptools-latest   instruct conda to use latest setuptools; currently used for testing PYME meson build
-
 ```
 
 #### Using the new environment
@@ -302,8 +291,9 @@ which currently shows
 
 ```
 usage: mk_extra_stuff.py [-h] [--python PYTHON] [--buildstem BUILDSTEM] [--suffix SUFFIX] [-c {conda,mamba}] [-e ENVIRONMENT]
-                         [--use-git] [--no-strict-channel] [--dry-run] [-x XTRA_PACKAGES [XTRA_PACKAGES ...]] [--pymenf PYMENF]
-                         [--pymesite PYMESITE] [--xtra-sets XTRA_SETS [XTRA_SETS ...]]
+                         [--use-git] [--no-strict-channel] [--dry-run] [-x XTRA_PACKAGES [XTRA_PACKAGES ...]] [--list-xtra-sets]
+                         [--pymenf PYMENF] [--xtra-sets XTRA_SETS [XTRA_SETS ...]] [--pymex-repo PYMEX_REPO]
+                         [--pymex-branch PYMEX_BRANCH] [--pymex-release PYMEX_RELEASE] [--pip-pymex]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -320,10 +310,17 @@ optional arguments:
   --dry-run             just process options but do not run any commands
   -x XTRA_PACKAGES [XTRA_PACKAGES ...], --xtra-packages XTRA_PACKAGES [XTRA_PACKAGES ...]
                         extra packages to install into the new environment
+  --list-xtra-sets      list known extra package sets
   --pymenf PYMENF       location of pymenf repo snapshot zip archive
-  --pymesite PYMESITE   location where to build pyme site repo, default None, standard=build_dir, other=path_where _to_build
   --xtra-sets XTRA_SETS [XTRA_SETS ...]
                         extra package sets to install into the new environment
+  --pymex-repo PYMEX_REPO
+                        github repository name of PYME-extra; defaults to csoeller/PYME-extra
+  --pymex-branch PYMEX_BRANCH
+                        branch of PYME-extra to use in build; defaults to master
+  --pymex-release PYMEX_RELEASE
+                        release tag for PYME-extra release to build; mutually exclusive with --use-git option
+  --pip-pymex           install PYME-extra via pip and not from source
 ```
 
 Some typical uses are demonstrated in the file [current-commands.md](current-commands.md).

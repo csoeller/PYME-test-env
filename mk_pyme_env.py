@@ -1,5 +1,4 @@
 import condacmds as cmds
-#from condacmds import download_pyme_extra, download_pyme, build_pyme_extra, build_pyme, build_pyme_meson, pyme_extra_install_plugins, download_pyme_extra_release, download_pyme_release
 from pathlib import Path
 import logging
 
@@ -55,9 +54,6 @@ parser.add_argument('--dry-run',action="store_true",
                     help='just process options but do not run any commands')
 parser.add_argument('-x','--xtra-packages', action="extend", nargs="+", type=str,
                     help='extra packages to install into the new environment')
-# parser.add_argument('--pyme-build-meson',action="store_true",
-#                     help='build pyme with meson (new build method)')
-
 
 
 ### Note
@@ -106,10 +102,8 @@ pbld = cmds.PymeBuild(pythonver=args.python,
 environment = pbld.env
 build_dir = pbld.build_dir
 
-logging.info("Command called as\n")
-logging.info(commandline + "\n")
-
 if args.dry_run:
+    pbld.setup_logging()
     logging.info("dry run, aborting...")
     import sys
     sys.exit(0)
@@ -138,30 +132,20 @@ if pbld.use_git:
         raise RuntimeError("git could not be imported; install gitpython ( e.g. 'conda/pip install gitpython'); on windows ALSO check for git executable)")
 
 
-# 1. make test environment
-envs = cmds.conda_envs()
-import json
-logging.info("Found the following envs:")
-logging.info(json.dumps(envs,indent=4))
+# 1. make environment with checks
+pbld.create_buildstructure()
 
-if environment not in envs:
-    cc = cmds.conda_create(environment, pbld.pythonver, channels=['conda-forge'])
+logging.info("Command called as\n")
+logging.info(commandline + "\n")
+
+if pbld.strict_conda_forge_channel:
+    cc = cmds.run_cmd_in_environment('conda config --env --set channel_priority strict',environment,check=True)
     logging.info(cc)
-    if pbld.strict_conda_forge_channel:
-        cc = cmds.run_cmd_in_environment('conda config --env --set channel_priority strict',environment,check=True)
-        logging.info(cc)
-        cc = cmds.run_cmd_in_environment('conda config --env --add channels conda-forge',environment,check=True)
-        logging.info(cc)
-        cc = cmds.run_cmd_in_environment('conda config --env --add channels david_baddeley',environment,check=True)
-        logging.info(cc)
-else:
-    print('environment %s already exists' % environment)
-    answer = input("Continue?")
-    if answer.lower() not in ["y","yes"]:
-        print("aborting...")
-        import sys
-        sys.exit(0)
-
+    cc = cmds.run_cmd_in_environment('conda config --env --add channels conda-forge',environment,check=True)
+    logging.info(cc)
+    cc = cmds.run_cmd_in_environment('conda config --env --add channels david_baddeley',environment,check=True)
+    logging.info(cc)
+        
 # just a quick check that we get the expected python version and can invoke it ok
 cc = cmds.run_cmd_in_environment('python -V',environment,check=True)
 logging.info("got python version info: %s" % cc)

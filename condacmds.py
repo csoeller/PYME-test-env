@@ -23,13 +23,18 @@ def shell_if_win32():
         return {}
 
 SETTINGSDIR = Path('.environments')
-
+REMOVEDIR = SETTINGSDIR / 'removed'
 def check_or_make_settingsdir():
     SETTINGSDIR.mkdir(exist_ok=True)
+    REMOVEDIR.mkdir(exist_ok=True)
 
-def envfile(env):
-    return SETTINGSDIR / ("%s.yaml" % (env))
-    
+def envfile(env,dir=SETTINGSDIR):
+    return  dir / ("%s.yaml" % (env))
+
+def remove_envfile(env):
+    import shutil
+    shutil.move(envfile(env),envfile(env,dir=REMOVEDIR))
+
 def check_env_registered(env):
     check_or_make_settingsdir()
     return envfile(env).is_file()
@@ -44,6 +49,11 @@ def write_env_settings_yaml(env,data):
     check_or_make_settingsdir()
     with envfile(env).open("w") as f:
        f.write(data)
+
+def pymebuild_from_env(env):
+    yaml_data = envfile(env).read_text()
+    pbuild = PymeBuild.from_yaml(yaml_data)
+    return pbuild
 
 # general approach taken: we run conda or pip commands in subprocesses
 # there is a decent discussion in this stackoverflow question
@@ -410,7 +420,7 @@ PBLD_REQ_ATTRIBUTES = '''
         
 class PymeBuild(object):
     def __init__(self,pythonver,build_dir='build-test',condacmd='conda',
-                 environment=None, mk_build_dir=True, start_log=True,
+                 environment=None, start_log=True,
                  with_pyme_depends=True,with_pyme_build=True,with_pymex=True,
                  with_recipes=False,
                  pyme_repo=None, pyme_branch=None,
@@ -419,7 +429,7 @@ class PymeBuild(object):
                  strict_conda_forge_channel=True, dry_run=False,
                  xtra_packages=None, logfile=None,
                  pyme_release=None,pymex_release=None,
-                 pyme_pip=False,pymex_pip=False,
+                 pyme_pip=False,pymex_pip=False
                  ):
         self.suffix = suffix
         self.pythonver = pythonver
@@ -457,18 +467,34 @@ class PymeBuild(object):
         self.strict_conda_forge_channel = strict_conda_forge_channel
         self.dry_run = dry_run
         self.xtra_packages = xtra_packages
-        
-        if mk_build_dir and not dry_run:
-            self.build_dir.mkdir(exist_ok=True)            
 
         self.mk_src_attributes()
 
         self.logging = start_log
-        self.setup_logging(logfile)
 
-        if not dry_run:
+    def create_buildstructure(self):
+        envs = conda_envs()
+        if self.env in envs:
+            print('environment %s already exists, potentially overwriting existing build' % environment)
+            answer = input("Continue, are you sure?")
+            if answer.lower() not in ["y","yes"]:
+                print("aborting...")
+                import sys
+                sys.exit(0)
+            env_new = False
+        else:
+            env_new = True
+        if env_new and self.build_dir.exists(): # env newly created but build dir already exists - not ok
+            raise RuntimeError("build dir %s already exists, conflict!" % self.build_dir)
+        if not self.dry_run:
             self.register_environment()
+        if not self.dry_run:
+            self.build_dir.mkdir(exist_ok=True)
+        self.setup_logging() # set up logging only after build_dir created
 
+        if env_new:
+            cc = conda_create(self.env, self.pythonver, channels=['conda-forge'])
+            logging.info(cc)
 
     def mk_src_attributes(self):
         self.pyme_src = SourceInfo(self.env,build_dir=self.build_dir,repo_name=self.pyme_repo,
@@ -493,6 +519,24 @@ class PymeBuild(object):
         if self.pymex_release is not None and self.pymex_pip:
             raise RuntimeError("you cannot choose to install a release AND install PYME-extra via pip; please choose either")
 
+    def essentials_exist(self):
+        envs = conda_envs()
+        self._statusmsg = ""
+        if self.env not in envs:
+            self._statusmsg = 'conda environment "%s" does not exist' % self.env
+            return False
+        if not self.build_dir.is_dir():
+            self._statusmsg = 'build dir "%s" does not exist or is not a directory' % self.build_dir
+            return False
+        return True
+
+    def status_msg(self):
+        try:
+            msg = self._statusmsg
+        except AttributeError:
+            msg = 'None'
+        return msg
+    
     def setup_logging(self,logfile=None):
         if self.logging:
             if logfile is None:
@@ -529,9 +573,15 @@ class PymeBuild(object):
     # here we want to add saving the config as yaml, check if config already exists, etc
     def register_environment(self):
         if check_env_registered(self.env):
-            self._settings = read_env_settings(self.env)
+            warn("environment %s already exists, deregistering" % self.env)
+            self.deregister_environment()
+        write_env_settings_yaml(self.env,self.to_yaml())
+
+    def deregister_environment(self):
+        if check_env_registered(self.env):
+            remove_envfile(self.env)
         else:
-            write_env_settings_yaml(self.env,self.to_yaml())
+            warn("asked to remove env definition file %s which does not exist, ignored" % envfile(self.env))
 
     def to_yaml(self):
         import yaml

@@ -130,8 +130,6 @@ def install_xtra_packages(pbld,packages):
                 result = cmds.pip_install(environment, pippacks)
                 logging.info(result)
 
-conda_flags = '--override-channels -c conda-forge' # this is aimed at sticking to conda-forge and not mix with default channel etc
-
 # while in the new env set a few channel options
 # set env-specific channel options
 # see also discussion in https://stackoverflow.com/questions/67202874/what-is-nb-conda-kernels-equivalent-for-python-3-9

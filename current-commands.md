@@ -7,13 +7,6 @@ General assumptions:
 - the `--suffix` option can generally be set to something convenient to tag the created environment so you know what is was made for etc
 - some commands mention the `pymenf` package/option; this is part of a non-free package and lines mentioning this can be safely ignored by those not having access
 
-## install with older matplotlib
-
-```shell
-# --matplotlib-version-force is a temporary switch
-python mk_pyme_env.py --python 3.11 -c conda --suffix=_ms2 --pyme-repo=csoeller/python-microscopy --pyme-branch=meson-fixes --matplotlib-version-force
-```
-
 ## install using pip install from PyPI
 
 This one just makes a new environment with the chosen Python version and then installs PYME and PYME-extra from PyPi, no actual build required. Easiest install by far.

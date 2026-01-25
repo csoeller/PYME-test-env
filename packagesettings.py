@@ -52,9 +52,9 @@ Packages = {
     }
 }
 
-#***************************
-#* PYME-extra dependencies *
-#***************************
+############################
+## PYME-extra dependencies #
+############################
 
 # ZARR version requirements
 # currently zarr<3 since zarr 3.X gives rise to an open error on zipstore zarrs;

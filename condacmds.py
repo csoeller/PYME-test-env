@@ -590,7 +590,9 @@ class PymeBuild(object):
         #    private attributes (start with underscore)
         #    methods
         #    SourceInfo attributes (these are derived from other args, so should be ok)
-        attr_names=[a for a in dir(self) if not a.startswith('_') and not callable(getattr(self, a)) and not isinstance(a,SourceInfo)]
+        attr_names=[a for a in dir(self) if not a.startswith('_') and
+                    not callable(getattr(self, a)) and
+                    not isinstance(getattr(self, a),SourceInfo)]
         for a in attr_names:
             attr = getattr(self,a)
             if isinstance(attr,Path):

@@ -83,7 +83,7 @@ commandline = " ".join(sys.argv)
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('environment',default=None,
-                    help='name for the conda environment that is to be added to - required argument')
+                    help='name of the existing conda environment that is to be added to - required argument')
 parser.add_argument('--list-xtra-sets', action="store_true",
                     help='list known extra package sets')
 parser.add_argument('-x','--xtra-packages', action="extend", nargs="+", type=str,

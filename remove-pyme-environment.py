@@ -5,15 +5,7 @@ from warnings import warn
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('environment',
-                    help='name for the conda environment that is to be removed')
-parser.add_argument('--python',default='3.9',
-                    help='specify the python version for the new environment')
-parser.add_argument('--buildstem',default='build-test',
-                    help='stem for the name of the build directory')
-parser.add_argument('-c','--condacmd',default='conda',choices=['conda','mamba'],
-                    help='conda command, should be one of conda or mamba')
-parser.add_argument('--suffix',default=None,
-                    help='suffix appended to default environment and build_dir')
+                    help='name of the existing conda environment that is to be removed')
 parser.add_argument('--dry-run',action="store_true",
                     help='just process options but do not run any commands')
 

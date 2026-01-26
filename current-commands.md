@@ -15,18 +15,18 @@ This one just makes a new environment with the chosen Python version and then in
 python mk_pyme_env.py --python=3.12 --suffix=_pip --pip-pyme --pip-pymex
 ```
 
-## install with Python 3.13 and use the relevant PYME fixes 
+## install with Python 3.13
 
-Currently Python 3.13 installs need a `PYME` fix that is as yet only available via our fork (PR to official `PYME` has been made).
+Currently new type installs (meson builds with newer matplotlib etc) need a `PYME` fix that is as yet only available via our fork. This seems to only affect mac installations and using high DPI displays.
 
 ```shell
-python mk_pyme_env.py --python 3.13 -c conda --pyme-repo=csoeller/python-microscopy --pyme-branch=meson-fixes 
+python mk_pyme_env.py --python 3.13 -c conda --pyme-repo=csoeller/python-microscopy --pyme-branch=recipe-macos-dpi
 ```
 
 ## install from latest snapshots
 
 ```shell
-python mk_pyme_env.py --python 3.11 -c conda --suffix=_sn --pyme-repo=csoeller/python-microscopy --pyme-branch=meson-fixes
+python mk_pyme_env.py --python 3.11 -c conda --suffix=_sn --pyme-repo=csoeller/python-microscopy --pyme-branch=recipe-macos-dpi
 ```
 
 ## install with explicitly released versions
@@ -36,6 +36,19 @@ This one we use with publications to install from specific releases.
 ```shell
 python mk_pyme_env.py --python 3.10 -e test-pyme-natcomm25 --pymex-release 25.11.29 --pyme-release 25.05.16 --buildstem b-nctest --pyme-repo csoeller/python-microscopy
 ```
+
+## full macOS install
+
+The example is Python 3.11 based, it also installs the non-free components and everything needed to run a notebook server (i.e. being able to run Jupyter notebooks). 
+
+```
+python mk_pyme_env.py --python=3.11 --suffix=_t --use-git --pyme-repo=csoeller/python-microscopy --pyme-branch=recipe-macos-dpi
+python mk_extra_stuff.py test-pyme-3.11-conda_t --pymenf pymenf-1.0.2.zip
+python mk_extra_stuff.py test-pyme-3.11-conda_t --xtra-sets notebooks    
+```
+
+## below now deprecated
+
 
 ## python 3.10
 
@@ -54,8 +67,6 @@ python mk_extra_stuff.py --python=3.10 --suffix=_1 -c mamba --pymenf pymenf\pyme
 ```
 python mk_pyme_env.py --python=3.10 --suffix=_1 --use-git
 ```
-
-#### now deprecated
 
 We don't need the `working-jan-2025` anymore with all relevant PRs merged
 

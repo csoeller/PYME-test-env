@@ -227,10 +227,11 @@ def repobasename(repo):
     return repo.split('/')[-1]
 
 class SourceInfo(object):
-    def __init__(self,environment,build_dir,repo_name=None,from_git=False,branch='master',release=None,
+    def __init__(self,environment,build_dir,name,repo_name=None,from_git=False,branch='master',release=None,
                  local_file=None,install_test_file=None,post_install_cmd=None,pip_install=False):
         self.target_environment = environment
         self.build_dir = build_dir
+        self.name = name
         self.repo_name = repo_name
         self.repo_branch = branch
         self.from_git = from_git
@@ -390,7 +391,7 @@ class SourceInfo(object):
         else:
             wd = self.package_dir_name()
         ret = run_cmd_in_environment(cmd, self.target_environment, cwd=wd)
-        logging.info("running postinstall command for %s..." % self.package_dir_name().name)
+        logging.info("running postinstall command for %s..." % self.name)
         logging.info(ret)
  
     def __str__(self):
@@ -497,10 +498,10 @@ class PymeBuild(object):
             logging.info(cc)
 
     def mk_src_attributes(self):
-        self.pyme_src = SourceInfo(self.env,build_dir=self.build_dir,repo_name=self.pyme_repo,
+        self.pyme_src = SourceInfo(self.env,build_dir=self.build_dir,name='PYME',repo_name=self.pyme_repo,
                                    from_git=self.use_git,branch=self.pyme_branch,release=self.pyme_release,
                                    install_test_file='meson.build',post_install_cmd=None,pip_install=self.pyme_pip)
-        self.pymex_src = SourceInfo(self.env,build_dir=self.build_dir,repo_name=self.pymex_repo,
+        self.pymex_src = SourceInfo(self.env,build_dir=self.build_dir,name='PYME-extra',repo_name=self.pymex_repo,
                                     from_git=self.use_git,branch=self.pymex_branch,release=self.pymex_release,
                                     install_test_file='pyproject.toml',
                                     post_install_cmd={

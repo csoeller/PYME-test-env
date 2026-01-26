@@ -22,12 +22,13 @@ def install_pymenf(ziplocation,build_dir,environment):
     # and register recipe modules
 
     pymenf_src = cmds.SourceInfo(environment,build_dir,
-                 local_file=ziplocation,
-                 install_test_file='meson.build',
-                 post_install_cmd={
-                     'new' : 'python install_plugins.py', # this is fine because we do not work with pip at this stage
-                     'old' : 'python install_plugins.py',
-                 },)
+                                 name='PYMEnf',
+                                 local_file=ziplocation,
+                                 install_test_file='meson.build',
+                                 post_install_cmd={
+                                     'new' : 'python install_plugins.py', # this is fine because we do not work with pip at this stage
+                                     'old' : 'python install_plugins.py',
+                                 },)
     
     pymenf_src.download() # the download is here really just an unpack of the zip and checking
     pymenf_src.build_and_install()

@@ -7,7 +7,7 @@ Packages = {
     'no_pyme_depends' : {
         'packagelists_mac' : {
             'conda' : [
-                ['setuptools<=73'], # setuptools 74.x triggers issue https://github.com/numpy/numpy/issues/27405 on mac
+                ['$setuptools$'], # setuptools 74.x triggers issue https://github.com/numpy/numpy/issues/27405 on mac
                 # start off with numpy/scipy
                 # the "libblas=*=*accelerate" arguments according to a number of sites, e.g.
                 #   - https://github.com/joblib/threadpoolctl/issues/135
@@ -20,7 +20,9 @@ Packages = {
                 # conda install "libblas=*=*blis"
                 # conda install "libblas=*=*accelerate"
                 # conda install "libblas=*=*netlib"
-                'scipy $numpy$ "libblas=*=*accelerate"'.split(),
+                # conda install libblas=*=*_newaccelerate # according to https://conda-forge.org/news/2025/07/31/new-accelerate-macos/
+                'scipy $numpy$ "libblas=*=*_newaccelerate"'.split(), # testing the _newaccelerate modification
+                # 'scipy $numpy$ "libblas=*=*accelerate"'.split(),
                 # next the main other dependecies
                 ('$matplotlib$ pytables pyopengl jinja2 cython pip requests pyyaml' +
                  ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
@@ -34,7 +36,7 @@ Packages = {
         },
         'packagelists_win' : {
             'conda': [
-                ['setuptools<=73'], # setuptools 74.x triggers issue https://github.com/numpy/numpy/issues/27405 on win, too!
+                ['$setuptools$'], # setuptools 74.x triggers issue https://github.com/numpy/numpy/issues/27405 on win, too!
                 'scipy $numpy$'.split(), # here we should have some suitably fast installation by default but may want to check
                 '$matplotlib$ pytables pyopengl jinja2 cython pip requests pyyaml'.split(),
                 'psutil pandas scikit-image scikit-learn sphinx toposort pybind11'.split(),
@@ -50,7 +52,11 @@ Packages = {
     }
 }
 
-# PYME-extra dependencies
+############################
+## PYME-extra dependencies #
+############################
+
+# ZARR version requirements
 # currently zarr<3 since zarr 3.X gives rise to an open error on zipstore zarrs;
 # still need to read the migration guide if that explains things:
 #       https://zarr.readthedocs.io/en/latest/user-guide/v3_migration.html
@@ -58,7 +64,14 @@ Packages = {
 #  "Can't conveniently open zip store from path with zarr v3"
 #  corresponding PR with fix: https://github.com/zarr-developers/zarr-python/pull/2856
 # so will hopefully be addressed in upcoming zarr 3.x update
-# tabulate is not really a PYME-extra dependency but used sometimes in notebooks etc
+# NOTE: currently looks like zarr 3.X is not able to open the structured array without raising an error, ZipStore or note
+#       check with Abberior if this is their understanding as well
+#       see also https://github.com/zarr-developers/zarr-python/issues/2134
+
+# tabulate and openpyxl are not really PYME-extra dependencies but used sometimes in notebooks etc
+# so we include them here for now
+
 Pymex_conda_packages = 'statsmodels roifile colorcet zarr>=2,<3 seaborn openpyxl mrcfile tabulate'.split()
+
 # circle-fit is not available in a recent enough version via conda-forge
 Pymex_pip_packages = 'circle-fit alphashape'.split()

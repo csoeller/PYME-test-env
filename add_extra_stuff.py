@@ -79,12 +79,17 @@ if args.environment is None:
 if not cmds.check_env_registered(args.environment):
     raise RuntimeError("environment %s is not registered with PYME-test-env, aborting" % args.environment)
 
-settings = cmds.read_env_settings(args.environment)
-yaml_data = cmds.envfile(args.environment).read_text()
-pb = PymeBuild.from_yaml(yaml_data)
+pb = cmds.pymebuild_from_env(args.environment)
+if not pb.essentials_exist():
+    logging.info("issues with PYME environment %s:" % args.environment)
+    logging.info(pb.status_msg())
+    import sys
+    sys.exit(1)
+
 print(pb)
 
-if args.dry_run: # for now we stop here
+if True or args.dry_run: # for now we stop here
     logging.info("dry run, aborting...")
     import sys
     sys.exit(0)
+

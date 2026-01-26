@@ -1,5 +1,4 @@
 import condacmds as cmds
-from condacmds import download_pyme_extra, download_pyme, build_pyme_extra, build_pyme, pyme_extra_install_plugins, download_pyme_extra_release, download_pyme_release
 from pathlib import Path
 import logging
 
@@ -35,12 +34,18 @@ parser.add_argument('--pymex-branch',default='master',
                     help='branch of PYME-extra to use in build; defaults to master')
 parser.add_argument('--no-pymex',action="store_true",
                     help='omit downloading and installing PYME-extra')
+parser.add_argument('--no-pyme-build',action="store_true",
+                    help='omit building and installing PYME')
 parser.add_argument('--no-pyme-depends',action="store_true",
                     help='install from package list rather than using pyme-depends')
 parser.add_argument('--pyme-release',default=None,
                     help='release tag for PYME release to build; mutually exclusive with --use-git option')
 parser.add_argument('--pymex-release',default=None,
                     help='release tag for PYME-extra release to build; mutually exclusive with --use-git option')
+parser.add_argument('--pip-pyme',action="store_true",
+                    help='install python-microscopy via pip and not from source')
+parser.add_argument('--pip-pymex',action="store_true",
+                    help='install PYME-extra via pip and not from source')
 parser.add_argument('--use-git',action="store_true",
                     help='clone git repo locally rather than just downloading snapshot')
 parser.add_argument('--no-strict-channel',action="store_true",
@@ -49,9 +54,6 @@ parser.add_argument('--dry-run',action="store_true",
                     help='just process options but do not run any commands')
 parser.add_argument('-x','--xtra-packages', action="extend", nargs="+", type=str,
                     help='extra packages to install into the new environment')
-parser.add_argument('--matplotlib-numpy-latest',action="store_true",
-                    help='instruct conda to use latest matplolib and numpy; currently used for testing of numpy>=2')
-
 
 
 ### Note
@@ -83,6 +85,7 @@ pbld = cmds.PymeBuild(pythonver=args.python,
                       condacmd=args.condacmd,
                       environment=args.environment,
                       with_pyme_depends=not args.no_pyme_depends,
+                      with_pyme_build=not args.no_pyme_build,
                       with_pymex=not args.no_pymex,
                       with_recipes=args.recipes,
                       pyme_repo=args.pyme_repo, pyme_branch=args.pyme_branch,
@@ -90,7 +93,8 @@ pbld = cmds.PymeBuild(pythonver=args.python,
                       use_git=args.use_git,suffix=args.suffix,
                       strict_conda_forge_channel=not args.no_strict_channel,
                       dry_run=args.dry_run,xtra_packages=args.xtra_packages,
-                      pyme_release=args.pyme_release,pymex_release=args.pymex_release
+                      pyme_release=args.pyme_release,pymex_release=args.pymex_release,
+                      pyme_pip=args.pip_pyme,pymex_pip=args.pip_pymex
                       )
 
 # TODO: here possibly check a _settings attribute for compatibility with the actual PymeBuild attributes
@@ -98,10 +102,8 @@ pbld = cmds.PymeBuild(pythonver=args.python,
 environment = pbld.env
 build_dir = pbld.build_dir
 
-logging.info("Command called as\n")
-logging.info(commandline + "\n")
-
 if args.dry_run:
+    pbld.setup_logging()
     logging.info("dry run, aborting...")
     import sys
     sys.exit(0)
@@ -130,81 +132,79 @@ if pbld.use_git:
         raise RuntimeError("git could not be imported; install gitpython ( e.g. 'conda/pip install gitpython'); on windows ALSO check for git executable)")
 
 
-# 1. make test environment
-envs = cmds.conda_envs()
-import json
-logging.info("Found the following envs:")
-logging.info(json.dumps(envs,indent=4))
+# 1. make environment with checks
+pbld.create_buildstructure()
 
-if environment not in envs:
-    cc = cmds.conda_create(environment, pbld.pythonver, channels=['conda-forge'])
+logging.info("Command called as\n")
+logging.info(commandline + "\n")
+
+if pbld.strict_conda_forge_channel:
+    cc = cmds.run_cmd_in_environment('conda config --env --set channel_priority strict',environment,check=True)
     logging.info(cc)
-    if pbld.strict_conda_forge_channel:
-        cc = cmds.run_cmd_in_environment('conda config --env --set channel_priority strict',environment,check=True)
-        logging.info(cc)
-        cc = cmds.run_cmd_in_environment('conda config --env --add channels conda-forge',environment,check=True)
-        logging.info(cc)
-        cc = cmds.run_cmd_in_environment('conda config --env --add channels david_baddeley',environment,check=True)
-        logging.info(cc)
-else:
-    print('environment %s already exists' % environment)
-    answer = input("Continue?")
-    if answer.lower() not in ["y","yes"]:
-        print("aborting...")
-        import sys
-        sys.exit(0)
-
+    cc = cmds.run_cmd_in_environment('conda config --env --add channels conda-forge',environment,check=True)
+    logging.info(cc)
+    cc = cmds.run_cmd_in_environment('conda config --env --add channels david_baddeley',environment,check=True)
+    logging.info(cc)
+        
 # just a quick check that we get the expected python version and can invoke it ok
 cc = cmds.run_cmd_in_environment('python -V',environment,check=True)
 logging.info("got python version info: %s" % cc)
 
 # 2. build/install pyme and dependencies
 
-import platform
+if not pbld.pyme_pip:
+    import platform
 
-prepy3_10 = version.parse(pbld.pythonver) < version.parse("3.10")
-postpy3_10 = version.parse(pbld.pythonver) > version.parse("3.10")
+    prepy3_10 = version.parse(pbld.pythonver) < version.parse("3.10")
+    postpy3_10 = version.parse(pbld.pythonver) > version.parse("3.10")
 
-if args.matplotlib_numpy_latest:
-    matplotlib = 'matplotlib'
-elif not prepy3_10: # we are now testing if latest PYME can deal with more recent matplotlib
-    matplotlib = 'matplotlib<=3.8'
-else:
-    matplotlib = 'matplotlib<=3.6'
+    # first download our main packages to check if we are using the new style build
+    pbld.pyme_src.download() # download even if not building
+    if pbld.with_pymex:
+        pbld.pymex_src.download()
 
-if args.matplotlib_numpy_latest:
-    numpy = 'numpy'
-else:
-    numpy = 'numpy<2'
+    newstyle_build = pbld.pyme_src.new_install_type()
 
+    if newstyle_build:
+        matplotlib = 'matplotlib'
+        numpy = 'numpy'
+        setuptools = 'setuptools'
+    else:
+        if not prepy3_10: # we are now testing if latest PYME can deal with more recent matplotlib
+            matplotlib = 'matplotlib<=3.8'
+        else:
+            matplotlib = 'matplotlib<=3.6'
+        numpy = 'numpy<2'
+        setuptools = 'setuptools<=73'
 
-if platform.machine() != 'arm64' and prepy3_10 and pbld.with_pyme_depends:
-    packages = Packages['with_pyme_depends']['packages']
+    if platform.machine() != 'arm64' and prepy3_10 and pbld.with_pyme_depends:
+        packages = Packages['with_pyme_depends']['packages']
     
-    result = cmds.conda_install(environment, packages, channels = ['conda-forge','david_baddeley'])
-    logging.info(result)
-else:
-    # install required packages from conda-forge and/or via pip
-    # currently we only check for mac and otherwise assume windows; this clearly ignores linux - should be extended when needed
-    if  platform.system() == 'Darwin': # now selected for all macs
-        package_sets = Packages['no_pyme_depends']['packagelists_mac']['conda']
+        result = cmds.conda_install(environment, packages, channels = ['conda-forge','david_baddeley'])
+        logging.info(result)
     else:
-        package_sets = Packages['no_pyme_depends']['packagelists_win']['conda']
+        # install required packages from conda-forge and/or via pip
+        # currently we only check for mac and otherwise assume windows; this clearly ignores linux - should be extended when needed
+        if  platform.system() == 'Darwin': # now selected for all macs
+            package_sets = Packages['no_pyme_depends']['packagelists_mac']['conda']
+        else:
+            package_sets = Packages['no_pyme_depends']['packagelists_win']['conda']
  
-    for packages in package_sets:
-        packages_expanded = [pack.replace('$matplotlib$',matplotlib).replace('$numpy$',numpy) for pack in packages]
-        result = cmds.conda_install(environment, packages_expanded, channels = ['conda-forge'])
-        logging.info(result)
+        for packages in package_sets:
+            packages_expanded = [pack.replace('$matplotlib$',matplotlib).replace('$numpy$',numpy).replace('$setuptools$',setuptools)
+                                 for pack in packages]
+            result = cmds.conda_install(environment, packages_expanded, channels = ['conda-forge'])
+            logging.info(result)
 
-    if  platform.system() == 'Darwin': # now selected for all macs
-        # next the main other dependecies
-        pip_package_set = Packages['no_pyme_depends']['packagelists_mac']['pip']
-    else:
-        pip_package_set = Packages['no_pyme_depends']['packagelists_win']['pip']
-    # now pip install packages that seem to need a pip install (always subject to checks if really required)
-    if len(pip_package_set)>0:
-        result = cmds.pip_install(environment, pip_package_set)
-        logging.info(result)
+        if  platform.system() == 'Darwin': # now selected for all macs
+            # next the main other dependecies
+            pip_package_set = Packages['no_pyme_depends']['packagelists_mac']['pip']
+        else:
+            pip_package_set = Packages['no_pyme_depends']['packagelists_win']['pip']
+        # now pip install packages that seem to need a pip install (always subject to checks if really required)
+        if len(pip_package_set)>0:
+            result = cmds.pip_install(environment, pip_package_set)
+            logging.info(result)
 
 ######################################
 # note that we can get a windows error:
@@ -213,46 +213,45 @@ else:
 # silly solution: move PYME-test-env repo close to root of disk and abbreviate build_directory name
 #### There must be a better solution!!
 
-if pbld.pyme_release is not None:
-    download_mode = 'release'
-elif pbld.use_git:
-    download_mode = 'git'
-else:
-    download_mode = 'snapshot'
 
-if pbld.pyme_release is not None:
-    download_pyme_release(pbld.pyme_release,build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch)
-else:    
-    download_pyme(build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch,mode=download_mode)
-build_pyme(environment,build_dir=build_dir,repo=args.pyme_repo,branch=args.pyme_branch,release=pbld.pyme_release)
+    if pbld.with_pyme_build:
+        if pbld.pyme_src.new_install_type():
+            ret = cmds.conda_install(environment, 'python-build meson meson-python'.split(), channels = ['conda-forge'])
+            logging.info("new type PYME install, installing meson build dependencies...")
+            logging.info(ret)
 
-# this should fail if our PYME install failed
-result = cmds.run_cmd_in_environment('python -c "import PYME.version; print(PYME.version.version)"',environment,check=True)
-logging.info("Got PYME version %s" % result)
+        pbld.pyme_src.build_and_install()
+        # this should fail if our PYME install failed
+        result = cmds.run_cmd_in_environment('python -c "import PYME.version; print(PYME.version.version)"',environment,check=True)
+        logging.info("Got PYME version %s" % result)
+
+else: # we are using pyme pip install
+    result = cmds.pip_install(environment, ['python-microscopy'])
+    logging.info(result)
+    # this should fail if our PYME install failed
+    result = cmds.run_cmd_in_environment('python -c "import PYME.version; print(PYME.version.version)"',environment,check=True)
+    logging.info("Got PYME version %s" % result)
 
 # 3. build/install pyme-extra
 if pbld.with_pymex:
-    # pyme-extra dependencies are listed in two variables at the top of the file
-    #    in Pymex_conda_packages and Pymex_pip_packages
-    result = cmds.conda_install(environment, Pymex_conda_packages, channels = ['conda-forge'])
-    logging.info(result)
+    if not pbld.pymex_pip:
+        result = cmds.conda_install(environment, Pymex_conda_packages, channels = ['conda-forge'])
+        logging.info(result)
 
-    result = cmds.pip_install(environment, Pymex_pip_packages)
-    logging.info(result)
+        result = cmds.pip_install(environment, Pymex_pip_packages)
+        logging.info(result)
 
-    if pbld.pymex_release is not None:
-        download_mode = 'release'
-    elif pbld.use_git:
-        download_mode = 'git'
+        if not pbld.pyme_src.new_install_type() and pbld.pymex_src.new_install_type():
+            ret = cmds.conda_install(environment, 'python-build meson meson-python'.split(), channels = ['conda-forge'])
+            logging.info("new type PYMEx install but old-style PYME install, installing meson build dependencies...")
+            logging.info(ret)
+
+        pbld.pymex_src.build_and_install()
     else:
-        download_mode = 'snapshot'
+        result = cmds.pip_install(environment, ['PYME-extra'])
+        logging.info(result)
 
-    if pbld.pymex_release is not None:
-        download_pyme_extra_release(pbld.pymex_release,build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch)
-    else:
-        download_pyme_extra(build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch,mode=download_mode)
-    build_pyme_extra(environment,build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch,release=pbld.pymex_release)
-    pyme_extra_install_plugins(environment,build_dir=build_dir,repo=args.pymex_repo,branch=args.pymex_branch,release=pbld.pymex_release)
+    pbld.pymex_src.postinstall()
 
 # 4. some custom recipes for some ease in a testing environment
 if pbld.with_recipes:

@@ -2,6 +2,17 @@
 
 Here we record in a loose fashion some observations, issues and possible fixes for PYME installation with `PYME-test-env` as we observe it. Entries should be dated and newest should be at the top.
 
+## 26.1.26
+
+The whole approach has now been upgraded to the level that new style vs old style builds should be auto-detected. We also support a one-line pip-based install.
+
+Installs from current source are compatible with latest `setuptools`, `matplotlib` and `numpy`. The latest versions of these packages are automatically installed with these PYME newer sources. Only when explicitly requesting older releases will the old build process be invoked and `setuptools`, `matplotlib` and `numpy` automatically pinned to older versions compatible with this build process.
+
+In addition, adding to an existing install and removing installs altogether has been streamlined and now works with the environment as only required argument to identify all aspects of the install.
+
+Most patches have now gone into main `python-microscopy` so that a build should work out of the box with no explicit need to go to the `csoeller/python-microscopy` fork. The only caveat is a small patch for macOS and high DPI displays that is mentioned in the [current-commands.md](current-commands.md) file.
+
+
 ## 11.1.26
 
 The PYME build has been modernised to be meson based and can now build with more recent `setuptools`, `numpy` and `Python` versions.

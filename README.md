@@ -12,6 +12,7 @@ We make extensive use of retrieving package dependencies from the `conda-forge` 
 
 **Note**: some typical current commands are listed in the file [current-commands.md](current-commands.md).
 
+**NOTE**: the scripts to add to an existing environment and remove an existing environment have been renamed! Now these are called `add_extra_packs.py` and `rm_pyme_env.py`.
 
 ## Installation notes
 
@@ -36,7 +37,7 @@ python mk_pyme_env.py --python 3.10 -c mamba
 python mk_pyme_env.py --python=3.11 -c mamba --environment pyme-py311-v1
 	
 # remove a test environment previously installed (see above)
-python remove-pyme-environment.py pyme-py311-v1
+python rm_pyme_env.py pyme-py311-v1
 	
 # test with recent python and forked pyme to fix compatibility issue
 # note double quotes in arguments for windows, single quotes cause issues!
@@ -296,14 +297,14 @@ There is a separate command/script to add components to an existing install. Exi
 You get some help on this command by issuing it with the `-h` switch:
 
 ```
-python mk_extra_stuff.py -h
+python add_extra_packs.py -h
 ```
 
 which currently shows
 
 
 ```
-usage: mk_extra_stuff.py [-h] [--list-xtra-sets] [-x XTRA_PACKAGES [XTRA_PACKAGES ...]] [--pymenf PYMENF]
+usage: add_extra_packs.py [-h] [--list-xtra-sets] [-x XTRA_PACKAGES [XTRA_PACKAGES ...]] [--pymenf PYMENF]
                          [--xtra-sets XTRA_SETS [XTRA_SETS ...]] [--pymex-install] [--pymex-repo PYMEX_REPO]
                          [--pymex-branch PYMEX_BRANCH] [--pymex-release PYMEX_RELEASE] [--pip-pymex]
                          [--use-git] [--dry-run]
@@ -341,14 +342,14 @@ For convenience there is a separate command/script to remove an existing install
 You get some help on this command by issuing it with the `-h` switch:
 
 ```
-python remove-pyme-environment.py -h
+python rm_pyme_env.py -h
 ```
 
 which currently shows
 
 
 ```
-usage: remove-pyme-environment.py [-h] [--dry-run] environment
+usage: rm_pyme_env.py [-h] [--dry-run] environment
 
 positional arguments:
   environment  name of the existing conda environment that is to be removed
@@ -367,6 +368,6 @@ and we will consider making this more robust over time if we find the actual usa
 and we currently install a few packages, such as `pyyaml`, `git` and possibly more in future. It should be possible to make a specific
 environment for `PYME-test-env` with a hardcoded name and install all dependencies into it. This way scripts can check for the name etc
 and we can keep a pristine `base` but not sure how important a pristine `base` really is.
-- The clean-up script `remove-pyme-environment.py` docs could be improved.
-- The add-on install script `mk_extra_stuff.py` docs could be improved.
+- The clean-up script `rm_pyme_env.py` docs could be improved.
+- The add-on install script `add_extra_packs.py` docs could be improved.
 

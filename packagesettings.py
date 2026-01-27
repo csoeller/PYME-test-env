@@ -1,4 +1,11 @@
 # central package list
+#
+#####################
+## Pinning
+#####################
+
+# currently pandas needs pinning at <3, otherwise some issues in reading MINFLUX metadata from zarr, maybe others
+# similar zarr needs pinning, see below, v3 does not yet have feature parity with v2
 Packages = {
     'with_pyme_depends' : {
         # the initial matplotlib pinning should ensure we do not get a too recent version 
@@ -25,7 +32,7 @@ Packages = {
                 # 'scipy $numpy$ "libblas=*=*accelerate"'.split(),
                 # next the main other dependecies
                 ('$matplotlib$ pytables pyopengl jinja2 cython pip requests pyyaml' +
-                 ' psutil pandas scikit-image scikit-learn sphinx toposort pybind11').split(),
+                 ' psutil pandas<3 scikit-image scikit-learn sphinx toposort pybind11').split(),
                 'traits traitsui pyface'.split(),
                 'pyfftw zeroconf python.app'.split(),
                 ['ujson'], # ujson for ClusterOfOne
@@ -39,7 +46,7 @@ Packages = {
                 ['$setuptools$'], # setuptools 74.x triggers issue https://github.com/numpy/numpy/issues/27405 on win, too!
                 'scipy $numpy$'.split(), # here we should have some suitably fast installation by default but may want to check
                 '$matplotlib$ pytables pyopengl jinja2 cython pip requests pyyaml'.split(),
-                'psutil pandas scikit-image scikit-learn sphinx toposort pybind11'.split(),
+                'psutil pandas<3 scikit-image scikit-learn sphinx toposort pybind11'.split(),
                 'traits traitsui pyface'.split(),
                 'pyfftw zeroconf pywin32'.split(),
                 ['pymecompress','ujson'], # IO of certain h5's seems to require pymecompress; ujson for ClusterOfOne

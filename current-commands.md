@@ -43,12 +43,11 @@ The example is Python 3.11 based, it also installs the non-free components and e
 
 ```
 python mk_pyme_env.py --python=3.11 --suffix=_t --use-git --pyme-repo=csoeller/python-microscopy --pyme-branch=recipe-macos-dpi
-python mk_extra_stuff.py test-pyme-3.11-conda_t --pymenf pymenf-1.0.2.zip
-python mk_extra_stuff.py test-pyme-3.11-conda_t --xtra-sets notebooks    
+python add_extra_packs.py test-pyme-3.11-conda_t --pymenf pymenf-1.0.2.zip
+python add_extra_packs.py test-pyme-3.11-conda_t --xtra-sets notebooks    
 ```
 
-## below now deprecated
-
+## below now deprecated / superceded
 
 ## python 3.10
 
@@ -59,8 +58,8 @@ python mk_extra_stuff.py test-pyme-3.11-conda_t --xtra-sets notebooks
 python mk_pyme_env.py --python=3.10 --suffix=_1 -c mamba --use-git
 rem bombed at some stage of building pyme; went in and did another round of 'python setup.py develop' and that (apparently) worked
 rem then picked up build with pyme-extra etc
-python mk_extra_stuff.py --python=3.10 --suffix=_1 -c mamba --use-git --xtra-sets PYME-extra
-python mk_extra_stuff.py --python=3.10 --suffix=_1 -c mamba --pymenf pymenf\pymenf-master.zip -x zarr
+python add_extra_packs.py --python=3.10 --suffix=_1 -c mamba --use-git --xtra-sets PYME-extra
+python add_extra_packs.py --python=3.10 --suffix=_1 -c mamba --pymenf pymenf\pymenf-master.zip -x zarr
 ```
 
 ### mac
@@ -97,8 +96,8 @@ Complete install with pymenf (non-free, only available to some parties) and note
 
 ```
 python mk_pyme_env.py --python=3.11 --suffix=_1 --use-git
-python mk_extra_stuff.py --python=3.11 --suffix=_1 --pymenf pymenf-master.zip # complete install on mac with pymenf
-python mk_extra_stuff.py --python=3.11 --suffix=_1 --xtra-sets notebooks # and latest notebook code
+python add_extra_packs.py --python=3.11 --suffix=_1 --pymenf pymenf-master.zip # complete install on mac with pymenf
+python add_extra_packs.py --python=3.11 --suffix=_1 --xtra-sets notebooks # and latest notebook code
 ```
 
 #### for numpy 2.x testing
@@ -114,7 +113,7 @@ We don't need the `working-jan-2025` anymore with all relevant PRs merged
 
 ```
 python mk_pyme_env.py --python=3.11 --suffix=_1 --use-git --pyme-repo "csoeller/python-microscopy"  --pyme-branch working-jan-2025
-python mk_extra_stuff.py --python=3.11 --suffix=_1 --pymenf pymenf-master.zip # complete install on mac with pymenf
-python mk_extra_stuff.py --python=3.11 --suffix=_1 --xtra-sets notebooks # and latest notebook code
+python add_extra_packs.py --python=3.11 --suffix=_1 --pymenf pymenf-master.zip # complete install on mac with pymenf
+python add_extra_packs.py --python=3.11 --suffix=_1 --xtra-sets notebooks # and latest notebook code
 ```
 

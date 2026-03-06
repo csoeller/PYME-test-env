@@ -8,6 +8,13 @@ import logging
 
 # list of known package sets
 extrapackages = {
+    # NOTE re kernels picked up by jupyter: once nb_conda_kernels is installed,
+    #      all it takes to get a kernel from another environment (here "my_env") show up in the
+    #      kernel list is ipykernel, i.e.
+    #
+    #            python add_extra_packs.py -x ipykernel my_env
+    #
+    #      should get your kernel to show up when running the notebook server from another environment with nb_conda_kernels
     'notebooks' : {'conda': 'notebook ipympl nb_conda_kernels'.split()},
     'notebooks-jupyterlab' : {'conda': 'ipympl jupyterlab nb_conda_kernels'.split()},
     # pymecompress is supplied from channel david_baddeley but that should already be in the list of channels
@@ -181,6 +188,6 @@ if args.xtra_sets is not None and len(args.xtra_sets) > 0:
     install_xtra_packages(pbld,args.xtra_sets)
 
 # 5. any extra packages requested
-if pbld.xtra_packages is not None and len(pbld.xtra_packages) > 0:
-    result = cmds.conda_install(environment, pbld.xtra_packages, channels = ['conda-forge'])
+if args.xtra_packages is not None and len(args.xtra_packages) > 0:
+    result = cmds.conda_install(environment, args.xtra_packages, channels = ['conda-forge'])
     logging.info(result)

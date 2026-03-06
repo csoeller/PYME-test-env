@@ -515,10 +515,11 @@ class PymeBuild(object):
             raise RuntimeError("you cannot choose to install a release AND use git mode; please choose either")
         if self.pymex_release is not None and self.use_git:
             raise RuntimeError("you cannot choose to install a release AND use git mode; please choose either")
-        if self.pyme_release is not None and self.pyme_pip:
-            raise RuntimeError("you cannot choose to install a release AND install PYME via pip; please choose either")
-        if self.pymex_release is not None and self.pymex_pip:
-            raise RuntimeError("you cannot choose to install a release AND install PYME-extra via pip; please choose either")
+        # NOTE: change - if a release is specified we will now try to install via pip with that version specifier
+        #if self.pyme_release is not None and self.pyme_pip:
+        #    raise RuntimeError("you cannot choose to install a release AND install PYME via pip; please choose either")
+        #if self.pymex_release is not None and self.pymex_pip:
+        #    raise RuntimeError("you cannot choose to install a release AND install PYME-extra via pip; please choose either")
 
     def essentials_exist(self):
         envs = conda_envs()

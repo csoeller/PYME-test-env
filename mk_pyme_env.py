@@ -226,7 +226,10 @@ if not pbld.pyme_pip:
         logging.info("Got PYME version %s" % result)
 
 else: # we are using pyme pip install
-    result = cmds.pip_install(environment, ['python-microscopy'])
+    package = 'python-microscopy'
+    if pbld.pyme_release is not None:
+        package = package + ("==%s" % pbld.pyme_release)
+    result = cmds.pip_install(environment, [package])
     logging.info(result)
     # this should fail if our PYME install failed
     result = cmds.run_cmd_in_environment('python -c "import PYME.version; print(PYME.version.version)"',environment,check=True)
@@ -248,7 +251,10 @@ if pbld.with_pymex:
 
         pbld.pymex_src.build_and_install()
     else:
-        result = cmds.pip_install(environment, ['PYME-extra'])
+        package = 'PYME-extra'
+        if pbld.pymex_release is not None:
+            package = package + ("==%s" % pbld.pymex_release)
+        result = cmds.pip_install(environment, [package])
         logging.info(result)
 
     pbld.pymex_src.postinstall()

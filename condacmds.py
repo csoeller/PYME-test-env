@@ -476,7 +476,7 @@ class PymeBuild(object):
     def create_buildstructure(self):
         envs = conda_envs()
         if self.env in envs:
-            print('environment %s already exists, potentially overwriting existing build' % environment)
+            print('environment %s already exists, potentially overwriting existing build' % self.env)
             answer = input("Continue, are you sure?")
             if answer.lower() not in ["y","yes"]:
                 print("aborting...")

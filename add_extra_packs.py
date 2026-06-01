@@ -51,7 +51,7 @@ def install_pyme_extra(pbld):
     # pyme-extra dependencies
     from packagesettings import Pymex_conda_packages, Pymex_pip_packages
 
-    if not pbld.pip_install:
+    if not 'pip_install' in dir(pbld) or not pbld.pip_install:
         result = cmds.conda_install(pbld.env, Pymex_conda_packages, channels = ['conda-forge'])
         logging.info(result)
 

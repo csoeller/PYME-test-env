@@ -160,9 +160,8 @@ if not pbld.pyme_pip:
 
     # first download our main packages to check if we are using the new style build
     pbld.pyme_src.download() # download even if not building
-    if pbld.with_pymex:
+    if pbld.with_pymex and not pbld.pyme_pip:
         pbld.pymex_src.download()
-
     newstyle_build = pbld.pyme_src.new_install_type()
 
     if newstyle_build:
@@ -226,6 +225,8 @@ if not pbld.pyme_pip:
         logging.info("Got PYME version %s" % result)
 
 else: # we are using pyme pip install
+    if pbld.with_pymex and not pbld.pyme_pip:
+        pbld.pymex_src.download()
     package = 'python-microscopy'
     if pbld.pyme_release is not None:
         package = package + ("==%s" % pbld.pyme_release)

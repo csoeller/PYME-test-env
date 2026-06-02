@@ -5,6 +5,21 @@ import logging
 # from here we get all the relevant package settings to build the environment
 from packagesettings import Packages, Pymex_conda_packages, Pymex_pip_packages
 
+PYME_PREFLIGHT_ACTIONS = []
+PYME_POSTFLIGHT_ACTIONS = []
+
+# some hacks to allow pre- and postflight actions to fix breaking issues, these all should take the environment name as argument
+def pythran_pre(environment):
+    cc = cmds.run_cmd_in_environment('python actions\pythran_precheck.py',environment,check=False)
+    logging.info(cc)
+
+def pythran_post(environment):
+    cc = cmds.run_cmd_in_environment('python actions\pythran_postaction.py',environment,check=False)
+    logging.info(cc)
+
+PYME_PREFLIGHT_ACTIONS.append(pythran_pre)
+PYME_POSTFLIGHT_ACTIONS.append(pythran_post)
+
 # 0. some basic setup/parameter choices via command line arguments
 
 import sys
@@ -219,7 +234,14 @@ if not pbld.pyme_pip:
             logging.info("new type PYME install, installing meson build dependencies...")
             logging.info(ret)
 
+        for action in PYME_PREFLIGHT_ACTIONS:
+            action(environment)
+
         pbld.pyme_src.build_and_install()
+
+        for action in PYME_POSTFLIGHT_ACTIONS:
+            action(environment)
+
         # this should fail if our PYME install failed
         result = cmds.run_cmd_in_environment('python -c "import PYME.version; print(PYME.version.version)"',environment,check=True)
         logging.info("Got PYME version %s" % result)

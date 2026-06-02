@@ -486,7 +486,7 @@ class PymeBuild(object):
         else:
             env_new = True
         if env_new and self.build_dir.exists(): # env newly created but build dir already exists - not ok
-            raise RuntimeError("build dir %s already exists, conflict!" % self.build_dir)
+            raise RuntimeError("Build dir %s already exists, conflict! Inspect and remove build dir manually if needed..." % self.build_dir)
         if not self.dry_run:
             self.register_environment()
         if not self.dry_run:

@@ -17,11 +17,13 @@ python mk_pyme_env.py --python=3.12 --suffix=_pip --pip-pyme --pip-pymex
 
 ## install with Python 3.13
 
-Currently new type installs (meson builds with newer matplotlib etc) need a `PYME` fix that is as yet only available via our fork. This seems to only affect mac installations and using high DPI displays.
+Below using the `conda` command but change this to `mamba` if you need faster performance on PC and have a miniforge install.
 
 ```shell
-python mk_pyme_env.py --python 3.13 -c conda --pyme-repo=csoeller/python-microscopy --pyme-branch=recipe-macos-dpi
+python mk_pyme_env.py --python 3.13 -c conda
 ```
+
+## install with Python 3.12, use a PYME pip install and install PYME-extra from git, also install ipykernel to register with Jupyter
 
 ## install from latest snapshots
 

@@ -50,12 +50,12 @@ Packages = {
                 'psutil pandas scikit-image scikit-learn sphinx toposort pybind11'.split(),
                 'traits traitsui pyface'.split(),
                 'pyfftw zeroconf pywin32'.split(),
-                ['pymecompress','ujson'], # IO of certain h5's seems to require pymecompress; ujson for ClusterOfOne
+                ['ujson'], # IO of certain h5's seems to require pymecompress; ujson for ClusterOfOne
                 # pyserial?
                 ['wxpython'], # let's check if wxpython installs ok from conda-forge
             ],
             #'pip': ['wxpython']
-            'pip': []
+            'pip': ['pymecompress'] # IO of certain h5's seems to require pymecompress; to build with recent python needs pip install
         }        
     }
 }

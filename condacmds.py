@@ -39,6 +39,13 @@ def check_env_registered(env):
     check_or_make_settingsdir()
     return envfile(env).is_file()
 
+def list_registered_envs():
+    from glob import glob
+    check_or_make_settingsdir()
+    yaml_list = glob("*.yaml",root_dir=SETTINGSDIR)
+    env_names = [Path(yfi).stem for yfi in yaml_list]
+    return env_names
+
 def read_env_settings(env):
     # check_or_make_settingsdir()
     with open(envfile(env)) as stream:

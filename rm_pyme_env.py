@@ -5,6 +5,8 @@ from warnings import warn
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('environment',
+                    nargs='?',
+                    const=None,
                     help='name of the existing conda environment that is to be removed')
 parser.add_argument('--dry-run',action="store_true",
                     help='just process options but do not run any commands')
@@ -15,7 +17,15 @@ cmds.check_condaenv('base') # check we are running in the base environment
 cmds.check_yaml_installed() # check yaml is available
 
 if args.environment is None:
-    raise RuntimeError("You need to provide an environment name to add stuff to, none given")
+    env_list = cmds.list_registered_envs()
+    print("You need to provide an environment name to remove, none given")
+    print("list of known environments:\n")
+    for env in env_list:
+        print("\t",env)
+
+    print("\n exiting...")
+    import sys
+    sys.exit(1)
 
 if not cmds.check_env_registered(args.environment):
     raise RuntimeError("environment %s is not registered with PYME-test-env, aborting" % args.environment)

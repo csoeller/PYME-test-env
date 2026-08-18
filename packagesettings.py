@@ -37,10 +37,10 @@ Packages = {
                 'traits traitsui pyface'.split(),
                 'pyfftw zeroconf python.app'.split(),
                 ['ujson'], # ujson for ClusterOfOne
-                ['wxpython'],
+                # ['wxpython'],
             ],
             #'pip': ['wxpython'] # recently (Sep 24), pip installs of wx on mac seem to be broken; by contrast, conda-forge builds seem ok
-            'pip': ['pymecompress'] # IO of certain h5's seems to require pymecompress; to build with recent python needs pip install
+            'pip': ['wxpython','pymecompress'] # IO of certain h5's seems to require pymecompress; to build with recent python needs pip install
         },
         'packagelists_win' : {
             'conda': [

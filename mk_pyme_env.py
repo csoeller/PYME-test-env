@@ -10,11 +10,11 @@ PYME_POSTFLIGHT_ACTIONS = []
 
 # some hacks to allow pre- and postflight actions to fix breaking issues, these all should take the environment name as argument
 def pythran_pre(environment):
-    cc = cmds.run_cmd_in_environment('python actions\pythran_precheck.py',environment,check=False)
+    cc = cmds.run_cmd_in_environment('python actions/pythran_precheck.py',environment,check=False)
     logging.info(cc)
 
 def pythran_post(environment):
-    cc = cmds.run_cmd_in_environment('python actions\pythran_postaction.py',environment,check=False)
+    cc = cmds.run_cmd_in_environment('python actions/pythran_postaction.py',environment,check=False)
     logging.info(cc)
 
 PYME_PREFLIGHT_ACTIONS.append(pythran_pre)
